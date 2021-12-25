@@ -32,21 +32,6 @@ func (e *HandlerApplicationTypeError) Error() string {
 	return err
 }
 
-type UpdateUnknownMetricNameError struct {
-	unknownMetricName string
-}
-
-func newUpdateUnknownMetricNameError(unknownMetricName string) *UpdateUnknownMetricNameError {
-	return &UpdateUnknownMetricNameError{
-		unknownMetricName: unknownMetricName,
-	}
-}
-
-func (e *UpdateUnknownMetricNameError) Error() string {
-	err := fmt.Sprintf("Unknown metric name: %s", e.unknownMetricName)
-	return err
-}
-
 type UpdateUnknownMetricTypeError struct {
 	unknownMetricType string
 }
