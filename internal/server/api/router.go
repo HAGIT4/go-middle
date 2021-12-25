@@ -63,7 +63,7 @@ func newMetricRouter() *metricRouter {
 			if err != nil {
 				c.AbortWithStatus(http.StatusNotFound)
 			}
-			c.String(http.StatusOK, strconv.FormatInt(metricValue, 64))
+			c.String(http.StatusOK, strconv.FormatInt(metricValue, 10))
 		default:
 			c.AbortWithStatus(http.StatusNotFound)
 		}
