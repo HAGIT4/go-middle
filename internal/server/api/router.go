@@ -28,7 +28,7 @@ func newMetricRouter() *metricRouter {
 		case metricTypeGauge:
 			metricValueFloat64, err := strconv.ParseFloat(metricValue, 64)
 			if err != nil {
-				c.AbortWithStatus(http.StatusInternalServerError)
+				c.AbortWithStatus(http.StatusBadRequest)
 			}
 			metricInfo := &models.MetricGaugeInfo{
 				Name:  metricName,
@@ -38,7 +38,7 @@ func newMetricRouter() *metricRouter {
 		case metricTypeCounter:
 			metricValueInt64, err := strconv.ParseInt(metricValue, 10, 64)
 			if err != nil {
-				c.AbortWithStatus(http.StatusInternalServerError)
+				c.AbortWithStatus(http.StatusBadRequest)
 			}
 			metricInfo := &models.MetricCounterInfo{
 				Name:  metricName,
