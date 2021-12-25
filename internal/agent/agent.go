@@ -48,10 +48,11 @@ func (a *agent) SendMetrics(data *agentData) error {
 			return err
 		}
 		req.Header.Set("application-type", "text/plain")
-		_, err = a.httpClient.Do(req)
+		resp, err := a.httpClient.Do(req)
 		if err != nil {
 			return err
 		}
+		defer resp.Body.Close()
 	}
 
 	for metric, value := range dataCounter {
@@ -61,10 +62,11 @@ func (a *agent) SendMetrics(data *agentData) error {
 			return err
 		}
 		req.Header.Set("application-type", "text/plain")
-		_, err = a.httpClient.Do(req)
+		resp, err := a.httpClient.Do(req)
 		if err != nil {
 			return err
 		}
+		defer resp.Body.Close()
 	}
 
 	return nil
