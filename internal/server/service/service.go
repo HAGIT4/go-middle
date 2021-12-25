@@ -44,3 +44,15 @@ func (s *MetricService) GetCounter(metricName string) (metricValue int64, err er
 	}
 	return metricValue, nil
 }
+
+func (s *MetricService) GetMetricAll() (gaugeNameToValue map[string]float64, counterNameToValue map[string]int64, err error) {
+	gaugeNameToValue, err = s.storage.GetGaugeAll()
+	if err != nil {
+		return nil, nil, err
+	}
+	counterNameToValue, err = s.storage.GetCounterAll()
+	if err != nil {
+		return nil, nil, err
+	}
+	return gaugeNameToValue, counterNameToValue, nil
+}

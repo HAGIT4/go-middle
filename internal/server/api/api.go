@@ -1,20 +1,25 @@
 package api
 
-import (
-	"net/http"
-)
-
 const (
 	metricTypeGauge   = "gauge"
 	metricTypeCounter = "counter"
 )
 
-func NewMetricServer(addr string) *http.Server {
-	httpMux := newServeMux()
+type metricServer struct {
+	addr    string
+	handler *metricRouter
+}
 
-	httpServer := &http.Server{
-		Addr:    addr,
-		Handler: httpMux,
+func NewMetricServer(addr string) *metricServer {
+	httpMux := newMetricRouter()
+
+	metricServer := &metricServer{
+		addr:    addr,
+		handler: httpMux,
 	}
-	return httpServer
+	return metricServer
+}
+
+func (s *metricServer) ListenAndServe() {
+	s.handler.mux.Run(s.addr)
 }

@@ -36,6 +36,10 @@ func (st *MemoryStorage) GetGauge(metricName string) (metricValue float64, err e
 	return metricValue, nil
 }
 
+func (st *MemoryStorage) GetGaugeAll() (metricNameToValue map[string]float64, err error) {
+	return st.storageGauge, nil
+}
+
 func (st *MemoryStorage) UpdateCounter(metricInfo *models.MetricCounterInfo) (err error) {
 	metric := metricInfo.Name
 	value := metricInfo.Value
@@ -54,4 +58,8 @@ func (st *MemoryStorage) GetCounter(metricName string) (metricValue int64, err e
 		return 0, err // how to return nil value?
 	}
 	return metricValue, nil
+}
+
+func (st *MemoryStorage) GetCounterAll() (metricNameToValue map[string]int64, err error) {
+	return st.storageCounter, nil
 }
