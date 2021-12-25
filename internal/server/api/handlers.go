@@ -32,7 +32,7 @@ func (h updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if metricType == metricTypeGauge {
 		metricInfo, err := parseMetricGauge(r)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusNotFound)
 		}
 		err = h.metricService.UpdateGauge(metricInfo)
 		if err != nil {
@@ -43,7 +43,7 @@ func (h updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	} else if metricType == metricTypeCounter {
 		metricInfo, err := parseMetricCounter(r)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusNotFound)
 		}
 		err = h.metricService.UpdateCounter(metricInfo)
 		if err != nil {
