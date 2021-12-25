@@ -26,7 +26,7 @@ func (h updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	metricType, err := parseMetricType(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusNotFound)
 	}
 
 	if metricType == metricTypeGauge {
