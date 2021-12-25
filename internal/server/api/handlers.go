@@ -24,11 +24,6 @@ func (h updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusMethodNotAllowed)
 	}
 
-	if h := r.Header.Get("application-type"); h != "text/plain" {
-		err := newHandlerApplicationTypeError(h)
-		http.Error(w, err.Error(), http.StatusUnsupportedMediaType)
-	}
-
 	metricType, err := parseMetricType(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
