@@ -18,6 +18,7 @@ func newMetricRouter() *metricRouter {
 	s := service.NewMetricService()
 
 	mux := gin.Default()
+	mux.RedirectTrailingSlash = false
 	mux.POST("/update/:metricType/:metricName/:metricValue", func(c *gin.Context) {
 		metricType := c.Param("metricType")
 		metricName := c.Param("metricName")
