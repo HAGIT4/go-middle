@@ -8,7 +8,7 @@ import (
 
 const (
 	pollInterval time.Duration = 2 * time.Second
-	serverAddr   string        = "127.0.0.1"
+	serverAddr   string        = "127.0.0.1:8080"
 )
 
 func main() {
