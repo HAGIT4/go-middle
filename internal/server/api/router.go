@@ -45,6 +45,8 @@ func newMetricRouter() *metricRouter {
 				Value: metricValueInt64,
 			}
 			s.UpdateCounter(metricInfo)
+		default:
+			c.AbortWithStatus(http.StatusNotImplemented)
 		}
 	})
 
