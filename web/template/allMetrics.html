@@ -1,0 +1,6 @@
+<h1>Gauge Metrics</h1>
+<ul>
+    {{range $Name, $Value := .GaugeMap -}}
+    {{$Name}}: {{$Value}}
+    {{end}}
+</ul>
