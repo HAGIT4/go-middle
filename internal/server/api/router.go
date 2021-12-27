@@ -22,6 +22,8 @@ func newMetricRouter() *metricRouter {
 	mux.LoadHTMLFiles("web/template/allMetrics.html")
 
 	mux.POST("/update/:metricType/:metricName/:metricValue", func(c *gin.Context) {
+		c.Header("application-type", "text/plain")
+
 		metricType := c.Param("metricType")
 		metricName := c.Param("metricName")
 		metricValue := c.Param("metricValue")
@@ -51,6 +53,8 @@ func newMetricRouter() *metricRouter {
 	})
 
 	mux.GET("/value/:metricType/:metricName", func(c *gin.Context) {
+		c.Header("application-type", "text/plain")
+
 		metricType := c.Param("metricType")
 		metricName := c.Param("metricName")
 
@@ -73,6 +77,8 @@ func newMetricRouter() *metricRouter {
 	})
 
 	mux.GET("/", func(c *gin.Context) {
+		c.Header("application-type", "text/plain")
+
 		gaugeNameToValue, counterNameToValue, err := s.GetMetricAll()
 		if err != nil {
 			c.AbortWithStatus(http.StatusInternalServerError)
