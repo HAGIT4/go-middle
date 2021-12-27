@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/HAGIT4/go-middle/internal/server/models"
 	"github.com/HAGIT4/go-middle/internal/server/service"
 	"github.com/gin-gonic/gin"
 )
@@ -17,6 +16,7 @@ type metricRouter struct {
 func newMetricRouter() *metricRouter {
 	s := service.NewMetricService()
 
+	gin.SetMode(gin.ReleaseMode)
 	mux := gin.Default()
 	mux.RedirectTrailingSlash = false
 	mux.LoadHTMLFiles("web/template/allMetrics.html")
@@ -32,21 +32,19 @@ func newMetricRouter() *metricRouter {
 			if err != nil {
 				c.AbortWithStatus(http.StatusBadRequest)
 			}
-			metricInfo := &models.MetricGaugeInfo{
-				Name:  metricName,
-				Value: metricValueFloat64,
+			err = s.UpdateGauge(metricName, metricValueFloat64)
+			if err != nil {
+				c.AbortWithStatus(http.StatusInternalServerError)
 			}
-			s.UpdateGauge(metricInfo)
 		case metricTypeCounter:
 			metricValueInt64, err := strconv.ParseInt(metricValue, 10, 64)
 			if err != nil {
 				c.AbortWithStatus(http.StatusBadRequest)
 			}
-			metricInfo := &models.MetricCounterInfo{
-				Name:  metricName,
-				Value: metricValueInt64,
+			s.UpdateCounter(metricName, metricValueInt64)
+			if err != nil {
+				c.AbortWithStatus(http.StatusInternalServerError)
 			}
-			s.UpdateCounter(metricInfo)
 		default:
 			c.AbortWithStatus(http.StatusNotImplemented)
 		}

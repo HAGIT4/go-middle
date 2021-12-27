@@ -1,9 +1,5 @@
 package storage
 
-import (
-	"github.com/HAGIT4/go-middle/internal/server/models"
-)
-
 type MemoryStorage struct {
 	storageGauge   map[string]float64
 	storageCounter map[string]int64
@@ -20,10 +16,8 @@ func NewMemoryStorage() *MemoryStorage {
 	}
 }
 
-func (st *MemoryStorage) UpdateGauge(metricInfo *models.MetricGaugeInfo) (err error) {
-	metric := metricInfo.Name
-	value := metricInfo.Value
-	st.storageGauge[metric] = value
+func (st *MemoryStorage) UpdateGauge(metricName string, metricValue float64) (err error) {
+	st.storageGauge[metricName] = metricValue
 	return nil
 }
 
@@ -40,10 +34,8 @@ func (st *MemoryStorage) GetGaugeAll() (metricNameToValue map[string]float64, er
 	return st.storageGauge, nil
 }
 
-func (st *MemoryStorage) UpdateCounter(metricInfo *models.MetricCounterInfo) (err error) {
-	metric := metricInfo.Name
-	value := metricInfo.Value
-	st.storageCounter[metric] = value
+func (st *MemoryStorage) UpdateCounter(metricName string, metricValue int64) (err error) {
+	st.storageCounter[metricName] = metricValue
 	return nil
 }
 

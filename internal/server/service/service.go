@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/HAGIT4/go-middle/internal/server/models"
 	"github.com/HAGIT4/go-middle/internal/server/storage"
 )
 
@@ -19,8 +18,8 @@ func NewMetricService() *MetricService {
 	return serv
 }
 
-func (s *MetricService) UpdateGauge(metricInfo *models.MetricGaugeInfo) (err error) {
-	err = s.storage.UpdateGauge(metricInfo)
+func (s *MetricService) UpdateGauge(metricName string, metricValue float64) (err error) {
+	err = s.storage.UpdateGauge(metricName, metricValue)
 	return err
 }
 
@@ -32,16 +31,13 @@ func (s *MetricService) GetGauge(metricName string) (metricValue float64, err er
 	return metricValue, nil
 }
 
-func (s *MetricService) UpdateCounter(metricInfo *models.MetricCounterInfo) (err error) {
-	knownValue, err := s.GetCounter(metricInfo.Name)
+func (s *MetricService) UpdateCounter(metricName string, metricValue int64) (err error) {
+	knownValue, err := s.GetCounter(metricName)
 	if err != nil {
 		knownValue = 0
 	}
-	metricInfo = &models.MetricCounterInfo{
-		Name:  metricInfo.Name,
-		Value: knownValue + metricInfo.Value,
-	}
-	err = s.storage.UpdateCounter(metricInfo)
+	newValue := knownValue + metricValue
+	err = s.storage.UpdateCounter(metricName, newValue)
 	return err
 }
 

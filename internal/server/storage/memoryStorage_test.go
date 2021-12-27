@@ -4,7 +4,6 @@ import (
 	"math"
 	"testing"
 
-	"github.com/HAGIT4/go-middle/internal/server/models"
 	"github.com/HAGIT4/go-middle/internal/server/storage"
 	"github.com/stretchr/testify/assert"
 )
@@ -35,11 +34,7 @@ func TestUpdateGauge(t *testing.T) {
 	metricName := "new metric"
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			metricInfo := &models.MetricGaugeInfo{
-				Name:  metricName,
-				Value: tt.value,
-			}
-			ms.UpdateGauge(metricInfo)
+			ms.UpdateGauge(metricName, tt.value)
 			actualValue, err := ms.GetGauge(metricName)
 			if err != nil {
 				t.Fatal(err)
