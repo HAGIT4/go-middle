@@ -33,6 +33,14 @@ func (s *MetricService) GetGauge(metricName string) (metricValue float64, err er
 }
 
 func (s *MetricService) UpdateCounter(metricInfo *models.MetricCounterInfo) (err error) {
+	knownValue, err := s.GetCounter(metricInfo.Name)
+	if err != nil {
+		knownValue = 0
+	}
+	metricInfo = &models.MetricCounterInfo{
+		Name:  metricInfo.Name,
+		Value: knownValue + metricInfo.Value,
+	}
 	err = s.storage.UpdateCounter(metricInfo)
 	return err
 }

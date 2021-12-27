@@ -1,12 +1,8 @@
 package api
 
 import (
-	"fmt"
-	"io/ioutil"
 	"net/http"
-	"path/filepath"
 	"strconv"
-	"text/template"
 
 	"github.com/HAGIT4/go-middle/internal/server/models"
 	"github.com/HAGIT4/go-middle/internal/server/service"
@@ -23,6 +19,8 @@ func newMetricRouter() *metricRouter {
 
 	mux := gin.Default()
 	mux.RedirectTrailingSlash = false
+	mux.LoadHTMLFiles("web/template/allMetrics.html")
+
 	mux.POST("/update/:metricType/:metricName/:metricValue", func(c *gin.Context) {
 		metricType := c.Param("metricType")
 		metricName := c.Param("metricName")
@@ -81,26 +79,10 @@ func newMetricRouter() *metricRouter {
 		if err != nil {
 			c.AbortWithStatus(http.StatusInternalServerError)
 		}
-		templateData := &models.GetAllMetricsData{
-			GaugeNameToValue:   gaugeNameToValue,
-			CounterNameToValue: counterNameToValue,
-		}
-		fmt.Println(templateData)
-
-		absPath, err := filepath.Abs("./web/template/allMetrics.html")
-		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
-		}
-		pageTemplate, err := ioutil.ReadFile(absPath)
-		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
-		}
-		page, err := template.New("All Metrics").Parse(string(pageTemplate))
-		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
-		}
-		c.HTML(http.StatusOK, "allMetrics.html", page)
-		fmt.Println(page)
+		c.HTML(http.StatusOK, "allMetrics.html", gin.H{
+			"GaugeMap":   gaugeNameToValue,
+			"CounterMap": counterNameToValue,
+		})
 	})
 
 	metricRouter := &metricRouter{

@@ -22,7 +22,7 @@ func NewAgent(serverAddr string, pollDuration time.Duration) *agent {
 	a := &agent{
 		serverAddr:   serverAddr,
 		pollInterval: pollDuration,
-		pollCount:    0,
+		pollCount:    1,
 		httpClient:   httpClient,
 	}
 	return a
@@ -32,7 +32,6 @@ func (a *agent) CollectMetrics() *agentData {
 	memStats := &runtime.MemStats{}
 	runtime.ReadMemStats(memStats)
 	data := newAgentData(memStats, a.pollCount)
-	a.pollCount = a.pollCount + 1
 	return data
 }
 

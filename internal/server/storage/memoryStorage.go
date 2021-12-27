@@ -43,11 +43,7 @@ func (st *MemoryStorage) GetGaugeAll() (metricNameToValue map[string]float64, er
 func (st *MemoryStorage) UpdateCounter(metricInfo *models.MetricCounterInfo) (err error) {
 	metric := metricInfo.Name
 	value := metricInfo.Value
-	if storedValue, found := st.storageCounter[metric]; !found {
-		st.storageCounter[metric] = value
-	} else {
-		st.storageCounter[metric] = storedValue + value
-	}
+	st.storageCounter[metric] = value
 	return nil
 }
 
