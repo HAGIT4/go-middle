@@ -2,43 +2,40 @@ package agent
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
-	"runtime"
 	"syscall"
 	"time"
 )
 
 type agent struct {
-	serverAddr   string
-	pollInterval time.Duration
-	pollCount    int
-	httpClient   *http.Client
+	serverAddr     string
+	pollInterval   time.Duration
+	reportInterval time.Duration
+	httpClient     *http.Client
 }
 
-func NewAgent(serverAddr string, pollDuration time.Duration) *agent {
+func NewAgent(serverAddr string, pollInterval time.Duration, reportInterval time.Duration) *agent {
 	httpClient := &http.Client{}
 	a := &agent{
-		serverAddr:   serverAddr,
-		pollInterval: pollDuration,
-		pollCount:    1,
-		httpClient:   httpClient,
+		serverAddr:     serverAddr,
+		pollInterval:   pollInterval,
+		reportInterval: reportInterval,
+		httpClient:     httpClient,
 	}
 	return a
 }
 
 func (a *agent) CollectMetrics() *agentData {
-	memStats := &runtime.MemStats{}
-	runtime.ReadMemStats(memStats)
-	data := newAgentData(memStats, a.pollCount)
+	data := newAgentData()
 	return data
 }
 
-func (a *agent) SendMetrics(data *agentData) error {
+func (a *agent) SendMetrics(data *agentData, pollCount int64) error {
 	urlTemplate := "http://%s/update/%s/%s/%d"
 	dataGauge := *data.agentDataGauge
-	dataCounter := *data.agentDataCounter
 
 	for metric, value := range dataGauge {
 		url := fmt.Sprintf(urlTemplate, a.serverAddr, "gauge", metric, value)
@@ -54,51 +51,45 @@ func (a *agent) SendMetrics(data *agentData) error {
 		defer resp.Body.Close()
 	}
 
-	for metric, value := range dataCounter {
-		url := fmt.Sprintf(urlTemplate, a.serverAddr, "counter", metric, value)
-		req, err := http.NewRequest(http.MethodPost, url, nil)
-		if err != nil {
-			return err
-		}
-		req.Header.Set("application-type", "text/plain")
-		resp, err := a.httpClient.Do(req)
-		if err != nil {
-			return err
-		}
-		defer resp.Body.Close()
-	}
-
-	return nil
-}
-
-func (a *agent) CollectAndSendMetrics() error {
-	memStats := a.CollectMetrics()
-	err := a.SendMetrics(memStats)
+	urlPollCount := fmt.Sprintf("http://%s/update/counter/PollCount/%d", a.serverAddr, pollCount)
+	req, err := http.NewRequest(http.MethodPost, urlPollCount, nil)
 	if err != nil {
 		return err
 	}
+	req.Header.Set("application-type", "text/plain")
+	resp, err := a.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
 	return nil
 }
 
 func (a *agent) SendMetricsWithInterval() error {
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
-	done := make(chan bool, 1)
-	go func() {
-		<-sigs
-		done <- true
-	}()
+	var pollCount int64
+	var agentData *agentData
 
-	ticker := time.NewTicker(a.pollInterval)
-	c := ticker.C
-Loop:
-	for {
-		select {
-		case <-c:
-			a.CollectAndSendMetrics()
-		case <-done:
-			break Loop
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
+
+	tickerPoll := time.NewTicker(a.pollInterval)
+	tickerSend := time.NewTicker(a.reportInterval)
+	cPoll := tickerPoll.C
+	cSend := tickerSend.C
+	go func() {
+		for {
+			select {
+			case <-cPoll:
+				agentData = a.CollectMetrics()
+				pollCount += 1
+			case <-cSend:
+				a.SendMetrics(agentData, pollCount)
+				pollCount = 0
+			}
 		}
-	}
+	}()
+	<-quit
+	log.Println("Agent shutdown...")
 	return nil
 }

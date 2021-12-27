@@ -6,19 +6,17 @@ import (
 )
 
 type agentDataGauge map[string]int
-type agentDataCounter map[string]int
 
 type agentData struct {
 	*agentDataGauge
-	*agentDataCounter
 }
 
-func newAgentData(memStats *runtime.MemStats, pollCount int) *agentData {
+func newAgentData() *agentData {
+	memStats := &runtime.MemStats{}
+	runtime.ReadMemStats(memStats)
 	dataGauge := newAgentDataGauge(memStats)
-	dataCounter := newAgentDataCounter(pollCount)
 	data := &agentData{
-		agentDataGauge:   dataGauge,
-		agentDataCounter: dataCounter,
+		agentDataGauge: dataGauge,
 	}
 	return data
 }
@@ -54,13 +52,6 @@ func newAgentDataGauge(memStats *runtime.MemStats) *agentDataGauge {
 		"Sys":           int(memStats.Sys),
 
 		"RandomValue": randomValue,
-	}
-	return data
-}
-
-func newAgentDataCounter(pollCount int) *agentDataCounter {
-	data := &agentDataCounter{
-		"PollCount": pollCount,
 	}
 	return data
 }
