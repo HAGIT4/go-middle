@@ -43,6 +43,7 @@ func (a *agentV1) SendMetrics(data *agentDataV1, pollCount int64) error {
 		if err != nil {
 			return err
 		}
+
 		req.Header.Set("application-type", "text/plain")
 		resp, err := a.httpClient.Do(req)
 		if err != nil {
@@ -84,7 +85,8 @@ func (a *agentV1) SendMetricsWithInterval() error {
 				agentData = a.CollectMetrics()
 				pollCount += 1
 			case <-cSend:
-				a.SendMetrics(agentData, pollCount)
+				err := a.SendMetrics(agentData, pollCount)
+				log.Println(err.Error())
 				pollCount = 0
 			}
 		}
