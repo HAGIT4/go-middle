@@ -5,25 +5,25 @@ import (
 	"runtime"
 )
 
-type agentDataGauge map[string]int
+type agentDataGaugeV1 map[string]int
 
-type agentData struct {
-	*agentDataGauge
+type agentDataV1 struct {
+	*agentDataGaugeV1
 }
 
-func newAgentData() *agentData {
+func newAgentDataV1() *agentDataV1 {
 	memStats := &runtime.MemStats{}
 	runtime.ReadMemStats(memStats)
-	dataGauge := newAgentDataGauge(memStats)
-	data := &agentData{
-		agentDataGauge: dataGauge,
+	dataGauge := newAgentDataGaugeV1(memStats)
+	data := &agentDataV1{
+		agentDataGaugeV1: dataGauge,
 	}
 	return data
 }
 
-func newAgentDataGauge(memStats *runtime.MemStats) *agentDataGauge {
+func newAgentDataGaugeV1(memStats *runtime.MemStats) *agentDataGaugeV1 {
 	randomValue := rand.Int()
-	data := &agentDataGauge{
+	data := &agentDataGaugeV1{
 		"Alloc":         int(memStats.Alloc),
 		"BuckHashSys":   int(memStats.BuckHashSys),
 		"Frees":         int(memStats.Frees),

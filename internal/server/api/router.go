@@ -8,13 +8,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type metricRouter struct {
+type metricRouterV1 struct {
 	mux     *gin.Engine
-	service service.IMetricService
+	service service.MetricServiceInterfaceV1
 }
 
-func newMetricRouter() *metricRouter {
-	s := service.NewMetricService()
+func newMetricRouterV1() *metricRouterV1 {
+	s := service.NewMetricServiceV1()
 
 	gin.SetMode(gin.ReleaseMode)
 	mux := gin.Default()
@@ -89,9 +89,9 @@ func newMetricRouter() *metricRouter {
 		})
 	})
 
-	metricRouter := &metricRouter{
+	metricRouter := &metricRouterV1{
 		mux:     mux,
-		service: service.NewMetricService(),
+		service: service.NewMetricServiceV1(),
 	}
 
 	return metricRouter

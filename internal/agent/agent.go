@@ -10,16 +10,16 @@ import (
 	"time"
 )
 
-type agent struct {
+type agentV1 struct {
 	serverAddr     string
 	pollInterval   time.Duration
 	reportInterval time.Duration
 	httpClient     *http.Client
 }
 
-func NewAgent(serverAddr string, pollInterval time.Duration, reportInterval time.Duration) *agent {
+func NewAgentV1(serverAddr string, pollInterval time.Duration, reportInterval time.Duration) *agentV1 {
 	httpClient := &http.Client{}
-	a := &agent{
+	a := &agentV1{
 		serverAddr:     serverAddr,
 		pollInterval:   pollInterval,
 		reportInterval: reportInterval,
@@ -28,14 +28,14 @@ func NewAgent(serverAddr string, pollInterval time.Duration, reportInterval time
 	return a
 }
 
-func (a *agent) CollectMetrics() *agentData {
-	data := newAgentData()
+func (a *agentV1) CollectMetrics() *agentDataV1 {
+	data := newAgentDataV1()
 	return data
 }
 
-func (a *agent) SendMetrics(data *agentData, pollCount int64) error {
+func (a *agentV1) SendMetrics(data *agentDataV1, pollCount int64) error {
 	urlTemplate := "http://%s/update/%s/%s/%d"
-	dataGauge := *data.agentDataGauge
+	dataGauge := *data.agentDataGaugeV1
 
 	for metric, value := range dataGauge {
 		url := fmt.Sprintf(urlTemplate, a.serverAddr, "gauge", metric, value)
@@ -66,9 +66,9 @@ func (a *agent) SendMetrics(data *agentData, pollCount int64) error {
 	return nil
 }
 
-func (a *agent) SendMetricsWithInterval() error {
+func (a *agentV1) SendMetricsWithInterval() error {
 	var pollCount int64
-	var agentData *agentData
+	var agentData *agentDataV1
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
