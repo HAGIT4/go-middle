@@ -8,7 +8,7 @@ import (
 type agentDataGauge map[string]float64
 
 type agentData struct {
-	*agentDataGauge
+	agentDataGauge *agentDataGauge
 }
 
 func newAgentData() *agentData {
