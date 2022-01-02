@@ -100,7 +100,7 @@ func newMetricRouter() *metricRouter {
 		}
 		respMetricMsg, err := s.GetMetric(reqMetricMsg)
 		if err != nil {
-			c.AbortWithStatus(http.StatusBadRequest)
+			c.AbortWithStatus(http.StatusNotFound)
 		}
 		c.Header("Content-Type", "application/json")
 		c.JSON(http.StatusOK, *respMetricMsg)
