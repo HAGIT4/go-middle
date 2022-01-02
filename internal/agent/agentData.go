@@ -50,6 +50,7 @@ func newAgentDataGauge(memStats *runtime.MemStats) *agentDataGauge {
 		"StackInuse":    float64(memStats.StackInuse),
 		"StackSys":      float64(memStats.StackSys),
 		"Sys":           float64(memStats.Sys),
+		"TotalAlloc":    float64(memStats.TotalAlloc),
 
 		"RandomValue": randomValue,
 	}
