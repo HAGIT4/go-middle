@@ -38,8 +38,10 @@ func (s *MetricService) GetCounter(metricName string) (metricValue int64, err er
 func (s *MetricService) GetMetric(metricInfoReq *models.Metrics) (metricInfoResp *models.Metrics, err error) {
 	metricType := metricInfoReq.MType
 	metricName := metricInfoReq.ID
-	// https://stackoverflow.com/a/51638160
-	metricInfoResp = metricInfoReq
+	metricInfoResp = &models.Metrics{
+		MType: metricType,
+		ID:    metricName,
+	}
 	switch metricType {
 	case "gauge":
 		metricValue, err := s.GetGauge(metricName)

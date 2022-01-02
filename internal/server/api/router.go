@@ -24,14 +24,17 @@ func newMetricRouter() *metricRouter {
 	mux.POST("/update/", func(c *gin.Context) {
 		contentHeader := c.Request.Header.Get("Content-Type")
 		if contentHeader != "application/json" {
-			c.AbortWithStatus(http.StatusBadRequest)
+			c.AbortWithError(http.StatusBadRequest, newApiNoJSONHeaderError())
+			return
 		}
 		reqMetricMsg := &models.Metrics{}
 		if err := c.BindJSON(reqMetricMsg); err != nil {
-			c.AbortWithStatus(http.StatusBadRequest)
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
 		}
 		if err := s.UpdateMetric(reqMetricMsg); err != nil {
-			c.AbortWithStatus(http.StatusBadRequest)
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
 		}
 	})
 
@@ -45,23 +48,28 @@ func newMetricRouter() *metricRouter {
 		case metricTypeGauge:
 			metricValueFloat64, err := strconv.ParseFloat(metricValue, 64)
 			if err != nil {
-				c.AbortWithStatus(http.StatusBadRequest)
+				c.AbortWithError(http.StatusBadRequest, err)
+				return
 			}
 			err = s.UpdateGauge(metricName, metricValueFloat64)
 			if err != nil {
-				c.AbortWithStatus(http.StatusInternalServerError)
+				c.AbortWithError(http.StatusInternalServerError, err)
+				return
 			}
 		case metricTypeCounter:
 			metricValueInt64, err := strconv.ParseInt(metricValue, 10, 64)
 			if err != nil {
-				c.AbortWithStatus(http.StatusBadRequest)
+				c.AbortWithError(http.StatusBadRequest, err)
+				return
 			}
 			s.UpdateCounter(metricName, metricValueInt64)
 			if err != nil {
-				c.AbortWithStatus(http.StatusInternalServerError)
+				c.AbortWithError(http.StatusInternalServerError, err)
+				return
 			}
 		default:
 			c.AbortWithStatus(http.StatusNotImplemented)
+			return
 		}
 	})
 
@@ -75,32 +83,40 @@ func newMetricRouter() *metricRouter {
 		case metricTypeGauge:
 			metricValue, err := s.GetGauge(metricName)
 			if err != nil {
-				c.AbortWithStatus(http.StatusNotFound)
+				c.AbortWithError(http.StatusNotFound, err)
+				return
 			}
 			c.String(http.StatusOK, strconv.FormatFloat(metricValue, 'f', -1, 64))
+			return
 		case metricTypeCounter:
 			metricValue, err := s.GetCounter(metricName)
 			if err != nil {
-				c.AbortWithStatus(http.StatusNotFound)
+				c.AbortWithError(http.StatusNotFound, err)
+				return
 			}
 			c.String(http.StatusOK, strconv.FormatInt(metricValue, 10))
+			return
 		default:
 			c.AbortWithStatus(http.StatusNotFound)
+			return
 		}
 	})
 
 	mux.POST("/value/", func(c *gin.Context) {
 		reqContentHeader := c.Request.Header.Get("Content-Type")
 		if reqContentHeader != "application/json" {
-			c.AbortWithStatus(http.StatusBadRequest)
+			c.AbortWithError(http.StatusBadRequest, newApiNoJSONHeaderError())
+			return
 		}
 		reqMetricMsg := &models.Metrics{}
 		if err := c.BindJSON(reqMetricMsg); err != nil {
-			c.AbortWithStatus(http.StatusBadRequest)
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
 		}
 		respMetricMsg, err := s.GetMetric(reqMetricMsg)
 		if err != nil {
-			c.AbortWithStatus(http.StatusNotFound)
+			c.AbortWithError(http.StatusNotFound, err)
+			return
 		}
 		c.Header("Content-Type", "application/json")
 		c.JSON(http.StatusOK, respMetricMsg)
@@ -111,7 +127,8 @@ func newMetricRouter() *metricRouter {
 
 		gaugeNameToValue, counterNameToValue, err := s.GetMetricAll()
 		if err != nil {
-			c.AbortWithStatus(http.StatusInternalServerError)
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
 		}
 		c.HTML(http.StatusOK, "allMetrics.html", gin.H{
 			"GaugeMap":   gaugeNameToValue,
