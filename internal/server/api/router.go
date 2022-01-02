@@ -103,7 +103,7 @@ func newMetricRouter() *metricRouter {
 			c.AbortWithStatus(http.StatusNotFound)
 		}
 		c.Header("Content-Type", "application/json")
-		c.JSON(http.StatusOK, *respMetricMsg)
+		c.JSON(http.StatusOK, respMetricMsg)
 	})
 
 	mux.GET("/", func(c *gin.Context) {
