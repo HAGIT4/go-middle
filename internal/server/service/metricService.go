@@ -91,11 +91,17 @@ func (s *MetricService) UpdateMetric(metricInfo *models.Metrics) (err error) {
 	metricName := metricInfo.ID
 	switch metricType {
 	case "gauge":
+		if metricInfo.Value == nil {
+			return newServiceNoValueUpdateError(metricName)
+		}
 		metricValue := *metricInfo.Value
 		if err := s.UpdateGauge(metricName, metricValue); err != nil {
 			return err
 		}
 	case "counter":
+		if metricInfo.Delta == nil {
+			return newServiceNoDeltaUpdateError(metricName)
+		}
 		metricDelta := *metricInfo.Delta
 		if err := s.UpdateCounter(metricName, metricDelta); err != nil {
 			return err
