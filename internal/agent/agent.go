@@ -99,6 +99,27 @@ func (a *agent) SendMetricsJSON(data *agentData, pollCount int64) (err error) {
 		}
 		defer resp.Body.Close()
 	}
+	reqMetricMsg := &models.Metrics{
+		ID:    "PollCount",
+		MType: "counter",
+		Delta: &pollCount,
+	}
+	reqMetricBytes, err := json.Marshal(reqMetricMsg)
+	if err != nil {
+		return err
+	}
+	buf := bytes.NewBuffer(reqMetricBytes)
+	req, err := http.NewRequest(http.MethodPost, url, buf)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := a.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
 	return nil
 }
 
