@@ -1,10 +1,10 @@
-package storage_test
+package service_test
 
 import (
 	"math"
 	"testing"
 
-	"github.com/HAGIT4/go-middle/internal/server/storage"
+	"github.com/HAGIT4/go-middle/internal/server/service"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,7 +30,7 @@ func TestUpdateGauge(t *testing.T) {
 			want:  math.MaxFloat64,
 		},
 	}
-	ms := storage.NewMemoryStorageV1()
+	ms := service.NewMetricService()
 	metricName := "new metric"
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

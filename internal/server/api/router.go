@@ -5,25 +5,38 @@ import (
 	"strconv"
 
 	"github.com/HAGIT4/go-middle/internal/server/service"
+	"github.com/HAGIT4/go-middle/pkg/models"
 	"github.com/gin-gonic/gin"
 )
 
-type metricRouterV1 struct {
+type metricRouter struct {
 	mux     *gin.Engine
-	service service.MetricServiceInterfaceV1
+	service service.MetricServiceInterface
 }
 
-func newMetricRouterV1() *metricRouterV1 {
-	s := service.NewMetricServiceV1()
+func newMetricRouter() *metricRouter {
+	s := service.NewMetricService()
 
-	gin.SetMode(gin.ReleaseMode)
 	mux := gin.Default()
 	mux.RedirectTrailingSlash = false
 	mux.LoadHTMLFiles("web/template/allMetrics.html")
 
+	mux.POST("/update/", func(c *gin.Context) {
+		contentHeader := c.Request.Header.Get("Content-Type")
+		if contentHeader != "application/json" {
+			c.AbortWithStatus(http.StatusBadRequest)
+		}
+		reqMetricMsg := &models.Metrics{}
+		if err := c.BindJSON(reqMetricMsg); err != nil {
+			c.AbortWithStatus(http.StatusBadRequest)
+		}
+		if err := s.UpdateMetric(reqMetricMsg); err != nil {
+			c.AbortWithStatus(http.StatusBadRequest)
+		}
+	})
+
 	mux.POST("/update/:metricType/:metricName/:metricValue", func(c *gin.Context) {
 		c.Header("application-type", "text/plain")
-
 		metricType := c.Param("metricType")
 		metricName := c.Param("metricName")
 		metricValue := c.Param("metricValue")
@@ -76,6 +89,22 @@ func newMetricRouterV1() *metricRouterV1 {
 		}
 	})
 
+	mux.POST("/value/", func(c *gin.Context) {
+		reqContentHeader := c.Request.Header.Get("Content-Type")
+		if reqContentHeader != "application/json" {
+			c.AbortWithStatus(http.StatusBadRequest)
+		}
+		reqMetricMsg := &models.Metrics{}
+		if err := c.BindJSON(reqMetricMsg); err != nil {
+			c.AbortWithStatus(http.StatusBadRequest)
+		}
+		respMetricMsg, err := s.GetMetric(reqMetricMsg)
+		if err != nil {
+			c.AbortWithStatus(http.StatusBadRequest)
+		}
+		c.JSON(http.StatusOK, *respMetricMsg)
+	})
+
 	mux.GET("/", func(c *gin.Context) {
 		c.Header("application-type", "text/plain")
 
@@ -89,9 +118,9 @@ func newMetricRouterV1() *metricRouterV1 {
 		})
 	})
 
-	metricRouter := &metricRouterV1{
+	metricRouter := &metricRouter{
 		mux:     mux,
-		service: service.NewMetricServiceV1(),
+		service: service.NewMetricService(),
 	}
 
 	return metricRouter

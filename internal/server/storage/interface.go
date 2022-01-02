@@ -1,6 +1,6 @@
 package storage
 
-type StorageInterfaceV1 interface {
+type StorageInterface interface {
 	GetGauge(metricName string) (metricValue float64, err error)
 	GetGaugeAll() (metricNameToValue map[string]float64, err error)
 	GetCounter(metricName string) (metricValue int64, err error)
