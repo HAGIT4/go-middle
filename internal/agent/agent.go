@@ -120,7 +120,7 @@ func (a *agent) SendMetricsWithInterval() (err error) {
 				agentData = a.CollectMetrics()
 				pollCount += 1
 			case <-cSend:
-				err := a.SendMetrics(agentData, pollCount)
+				err := a.SendMetricsJSON(agentData, pollCount)
 				if err != nil {
 					log.Println(err.Error())
 				}

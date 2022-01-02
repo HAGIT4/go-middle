@@ -100,6 +100,8 @@ func (s *MetricService) UpdateMetric(metricInfo *models.Metrics) (err error) {
 		if err := s.UpdateCounter(metricName, metricDelta); err != nil {
 			return err
 		}
+	default:
+		return newServiceMetricTypeUnknownError(metricType)
 	}
-	return newServiceMetricTypeUnknownError(metricType)
+	return nil
 }
