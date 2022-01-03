@@ -1,18 +1,24 @@
 package main
 
 import (
+	"log"
 	"time"
 
 	"github.com/HAGIT4/go-middle/internal/agent"
+	"github.com/caarlos0/env"
 )
 
-const (
-	pollInterval   time.Duration = 2 * time.Second
-	reportInterval time.Duration = 10 * time.Second
-	serverAddr     string        = "127.0.0.1:8080"
-)
+type Config struct {
+	ServerAddr     string        `env:"ADDRESS" envDefault:"localhost:8080"`
+	ReportInterval time.Duration `env:"REPORT_INTERVAL" envDefault:"10s"`
+	PollInterval   time.Duration `env:"POLL_INTERVAL" envDefault:"2s"`
+}
 
 func main() {
-	a := agent.NewAgent(serverAddr, pollInterval, reportInterval)
+	cfg := &Config{}
+	if err := env.Parse(cfg); err != nil {
+		log.Fatal(err)
+	}
+	a := agent.NewAgent(cfg.ServerAddr, cfg.PollInterval, cfg.ReportInterval)
 	a.SendMetricsWithInterval()
 }
