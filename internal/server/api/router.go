@@ -24,7 +24,7 @@ func newMetricRouter() *metricRouter {
 	mux.POST("/update/", func(c *gin.Context) {
 		contentHeader := c.Request.Header.Get("Content-Type")
 		if contentHeader != "application/json" {
-			c.AbortWithError(http.StatusBadRequest, newApiNoJSONHeaderError())
+			c.AbortWithError(http.StatusBadRequest, newAPINoJSONHeaderError())
 			return
 		}
 		reqMetricMsg := &models.Metrics{}
@@ -62,8 +62,7 @@ func newMetricRouter() *metricRouter {
 				c.AbortWithError(http.StatusBadRequest, err)
 				return
 			}
-			s.UpdateCounter(metricName, metricValueInt64)
-			if err != nil {
+			if err := s.UpdateCounter(metricName, metricValueInt64); err != nil {
 				c.AbortWithError(http.StatusInternalServerError, err)
 				return
 			}
@@ -105,7 +104,7 @@ func newMetricRouter() *metricRouter {
 	mux.POST("/value/", func(c *gin.Context) {
 		reqContentHeader := c.Request.Header.Get("Content-Type")
 		if reqContentHeader != "application/json" {
-			c.AbortWithError(http.StatusBadRequest, newApiNoJSONHeaderError())
+			c.AbortWithError(http.StatusBadRequest, newAPINoJSONHeaderError())
 			return
 		}
 		reqMetricMsg := &models.Metrics{}

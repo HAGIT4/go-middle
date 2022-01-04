@@ -3,7 +3,7 @@ package api
 type apiNoJSONHeaderError struct {
 }
 
-func newApiNoJSONHeaderError() *apiNoJSONHeaderError {
+func newAPINoJSONHeaderError() *apiNoJSONHeaderError {
 	return &apiNoJSONHeaderError{}
 }
 
