@@ -2,6 +2,7 @@ package agent
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -59,7 +60,8 @@ func (a *agent) SendMetrics(data *agentData, pollCount int64) (err error) {
 	}
 
 	urlPollCount := fmt.Sprintf("http://%s/update/counter/PollCount/%d", a.serverAddr, pollCount)
-	req, err := http.NewRequest(http.MethodPost, urlPollCount, nil)
+	ctx := context.Background()
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, urlPollCount, nil)
 	if err != nil {
 		return err
 	}
@@ -109,7 +111,8 @@ func (a *agent) SendMetricsJSON(data *agentData, pollCount int64) (err error) {
 		return err
 	}
 	buf := bytes.NewBuffer(reqMetricBytes)
-	req, err := http.NewRequest(http.MethodPost, url, buf)
+	ctx := context.Background()
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, buf)
 	if err != nil {
 		return err
 	}
