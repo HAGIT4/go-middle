@@ -12,22 +12,22 @@ const (
 	metricTypeCounter = "counter"
 )
 
-type metricServerV1 struct {
+type metricServer struct {
 	addr    string
-	handler *metricRouterV1
+	handler *metricRouter
 }
 
-func NewMetricServerV1(addr string) *metricServerV1 {
-	httpMux := newMetricRouterV1()
+func NewMetricServer(addr string) *metricServer {
+	httpMux := newMetricRouter()
 
-	metricServer := &metricServerV1{
+	metricServer := &metricServer{
 		addr:    addr,
 		handler: httpMux,
 	}
 	return metricServer
 }
 
-func (s *metricServerV1) ListenAndServe() {
+func (s *metricServer) ListenAndServe() {
 	go func() {
 		if err := s.handler.mux.Run(s.addr); err != nil {
 			log.Fatal(err)

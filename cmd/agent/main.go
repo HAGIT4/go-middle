@@ -13,6 +13,6 @@ const (
 )
 
 func main() {
-	a := agent.NewAgentV1(serverAddr, pollInterval, reportInterval)
+	a := agent.NewAgent(serverAddr, pollInterval, reportInterval)
 	a.SendMetricsWithInterval()
 }

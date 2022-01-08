@@ -10,16 +10,16 @@ import (
 	"time"
 )
 
-type agentV1 struct {
+type agent struct {
 	serverAddr     string
 	pollInterval   time.Duration
 	reportInterval time.Duration
 	httpClient     *http.Client
 }
 
-func NewAgentV1(serverAddr string, pollInterval time.Duration, reportInterval time.Duration) *agentV1 {
+func NewAgent(serverAddr string, pollInterval time.Duration, reportInterval time.Duration) *agent {
 	httpClient := &http.Client{}
-	a := &agentV1{
+	a := &agent{
 		serverAddr:     serverAddr,
 		pollInterval:   pollInterval,
 		reportInterval: reportInterval,
@@ -28,14 +28,14 @@ func NewAgentV1(serverAddr string, pollInterval time.Duration, reportInterval ti
 	return a
 }
 
-func (a *agentV1) CollectMetrics() *agentDataV1 {
-	data := newAgentDataV1()
+func (a *agent) CollectMetrics() *agentData {
+	data := newAgentData()
 	return data
 }
 
-func (a *agentV1) SendMetrics(data *agentDataV1, pollCount int64) error {
+func (a *agent) SendMetrics(data *agentData, pollCount int64) error {
 	urlTemplate := "http://%s/update/%s/%s/%d"
-	dataGauge := *data.agentDataGaugeV1
+	dataGauge := *data.agentDataGauge
 
 	for metric, value := range dataGauge {
 		url := fmt.Sprintf(urlTemplate, a.serverAddr, "gauge", metric, value)
@@ -67,9 +67,9 @@ func (a *agentV1) SendMetrics(data *agentDataV1, pollCount int64) error {
 	return nil
 }
 
-func (a *agentV1) SendMetricsWithInterval() error {
+func (a *agent) SendMetricsWithInterval() error {
 	var pollCount int64
-	var agentData *agentDataV1
+	var agentData *agentData
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
@@ -85,8 +85,9 @@ func (a *agentV1) SendMetricsWithInterval() error {
 				agentData = a.CollectMetrics()
 				pollCount += 1
 			case <-cSend:
-				err := a.SendMetrics(agentData, pollCount)
-				log.Println(err.Error())
+				if err := a.SendMetrics(agentData, pollCount); err != nil {
+					log.Println(err.Error())
+				}
 				pollCount = 0
 			}
 		}
