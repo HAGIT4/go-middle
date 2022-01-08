@@ -3,12 +3,12 @@ module github.com/HAGIT4/go-middle
 go 1.17
 
 require (
+	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/gin-gonic/gin v1.7.7
 	github.com/stretchr/testify v1.7.0
 )
 
 require (
-	github.com/caarlos0/env v3.5.0+incompatible // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.13.0 // indirect

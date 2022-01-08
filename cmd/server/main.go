@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/HAGIT4/go-middle/internal/server/api"
+	"github.com/HAGIT4/go-middle/pkg/models"
 	"github.com/caarlos0/env"
 )
 
@@ -20,7 +21,11 @@ func main() {
 	if err := env.Parse(cfg); err != nil {
 		log.Fatal(err)
 	}
-
-	s := api.NewMetricServer(cfg.ServerAddr, cfg.StoreInterval, cfg.StoreFile, cfg.Restore)
+	restoreConfig := &models.RestoreConfig{
+		StoreInterval: cfg.StoreInterval,
+		StoreFile:     cfg.StoreFile,
+		Restore:       cfg.Restore,
+	}
+	s := api.NewMetricServer(cfg.ServerAddr, restoreConfig)
 	s.ListenAndServe()
 }

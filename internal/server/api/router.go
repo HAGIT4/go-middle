@@ -14,8 +14,7 @@ type metricRouter struct {
 	service service.MetricServiceInterface
 }
 
-func newMetricRouter() *metricRouter {
-	s := service.NewMetricService()
+func newMetricRouter(s service.MetricServiceInterface) *metricRouter {
 
 	mux := gin.Default()
 	mux.RedirectTrailingSlash = false
@@ -137,7 +136,7 @@ func newMetricRouter() *metricRouter {
 
 	metricRouter := &metricRouter{
 		mux:     mux,
-		service: service.NewMetricService(),
+		service: s,
 	}
 
 	return metricRouter

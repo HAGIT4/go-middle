@@ -1,12 +1,13 @@
 package api
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
+
+	"github.com/HAGIT4/go-middle/internal/server/service"
+	"github.com/HAGIT4/go-middle/pkg/models"
 )
 
 const (
@@ -15,57 +16,29 @@ const (
 )
 
 type metricServer struct {
-	addr          string
-	storeInterval time.Duration
-	storeFile     string
-	restore       bool
-
+	addr    string
 	handler *metricRouter
 }
 
 var _ MetricServerInterface = (*metricServer)(nil)
 
-func NewMetricServer(addr string, storeInterval time.Duration, storeFile string, restore bool) *metricServer {
-	httpMux := newMetricRouter()
+func NewMetricServer(addr string, restoreConfig *models.RestoreConfig) *metricServer {
+	s := service.NewMetricService(restoreConfig)
+	httpMux := newMetricRouter(s)
 
 	metricServer := &metricServer{
-		addr:          addr,
-		storeInterval: storeInterval,
-		storeFile:     storeFile,
-		restore:       restore,
-
+		addr:    addr,
 		handler: httpMux,
 	}
 	return metricServer
 }
 
-func (s *metricServer) RestoreDataFromFile() (err error) {
-	if !s.restore {
-		fmt.Println("Not reading from file..")
-		return nil
-	}
-
-	storeFile, err := os.Open(s.storeFile)
-	if err != nil {
-		return err
-	}
-	defer storeFile.Close()
-	// TODO: todo
-	return nil
-}
-
-func (s *metricServer) SaveWithInterval() {
-
-}
-
 func (s *metricServer) ListenAndServe() {
-	s.RestoreDataFromFile()
 	go func() {
 		if err := s.handler.mux.Run(s.addr); err != nil {
 			log.Fatal(err)
 		}
 	}()
-	go s.SaveWithInterval()
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	<-quit

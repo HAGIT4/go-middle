@@ -6,15 +6,17 @@ import (
 )
 
 type MetricService struct {
-	storage storage.StorageInterface
+	storage       storage.StorageInterface
+	restoreConfig models.RestoreConfig
 }
 
 var _ MetricServiceInterface = (*MetricService)(nil)
 
-func NewMetricService() *MetricService {
+func NewMetricService(restoreConfig *models.RestoreConfig) *MetricService {
 	st := storage.NewMemoryStorage()
 	serv := &MetricService{
-		storage: st,
+		storage:       st,
+		restoreConfig: *restoreConfig,
 	}
 	return serv
 }
