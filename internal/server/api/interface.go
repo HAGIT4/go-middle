@@ -1,5 +1,5 @@
 package api
 
 type MetricServerInterface interface {
-	ListenAndServe()
+	ListenAndServe() (err error)
 }

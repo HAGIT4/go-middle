@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -26,6 +27,10 @@ func main() {
 		StoreFile:     cfg.StoreFile,
 		Restore:       cfg.Restore,
 	}
-	s := api.NewMetricServer(cfg.ServerAddr, restoreConfig)
+	fmt.Println("store interval:", restoreConfig.StoreInterval)
+	s, err := api.NewMetricServer(cfg.ServerAddr, restoreConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
 	s.ListenAndServe()
 }

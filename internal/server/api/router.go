@@ -14,8 +14,7 @@ type metricRouter struct {
 	service service.MetricServiceInterface
 }
 
-func newMetricRouter(s service.MetricServiceInterface) *metricRouter {
-
+func newMetricRouter(s service.MetricServiceInterface) (r *metricRouter, err error) {
 	mux := gin.Default()
 	mux.RedirectTrailingSlash = false
 	mux.LoadHTMLFiles("web/template/allMetrics.html")
@@ -134,10 +133,10 @@ func newMetricRouter(s service.MetricServiceInterface) *metricRouter {
 		})
 	})
 
-	metricRouter := &metricRouter{
+	r = &metricRouter{
 		mux:     mux,
 		service: s,
 	}
 
-	return metricRouter
+	return r, err
 }
