@@ -1,24 +1,51 @@
 package service
 
 import (
+	"bufio"
+	"encoding/json"
+	"fmt"
+	"io"
+	"os"
+	"time"
+
 	"github.com/HAGIT4/go-middle/internal/server/storage"
 	"github.com/HAGIT4/go-middle/pkg/models"
 )
 
 type MetricService struct {
-	storage       storage.StorageInterface
+	storage storage.StorageInterface
+
 	restoreConfig models.RestoreConfig
+	restoreFile   *os.File
 }
 
 var _ MetricServiceInterface = (*MetricService)(nil)
 
-func NewMetricService(restoreConfig *models.RestoreConfig) *MetricService {
+func NewMetricService(restoreConfig *models.RestoreConfig) (serv *MetricService, err error) {
 	st := storage.NewMemoryStorage()
-	serv := &MetricService{
+	if restoreConfig.StoreInterval == 0 {
+		restoreConfig.SyncWrite = true
+	} else {
+		restoreConfig.SyncWrite = false
+	}
+
+	serv = &MetricService{
 		storage:       st,
 		restoreConfig: *restoreConfig,
 	}
-	return serv
+	if err := serv.RestoreDataFromFile(); err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+	}
+
+	fileFlags := os.O_WRONLY | os.O_APPEND | os.O_CREATE
+	restoreFile, err := os.OpenFile(serv.restoreConfig.StoreFile, fileFlags, 0222)
+	if err != nil {
+		return nil, err
+	}
+	serv.restoreFile = restoreFile
+
+	return serv, nil
 }
 
 func (s *MetricService) GetGauge(metricName string) (metricValue float64, err error) {
@@ -112,6 +139,127 @@ func (s *MetricService) UpdateMetric(metricInfo *models.Metrics) (err error) {
 		}
 	default:
 		return newServiceMetricTypeUnknownError(metricType)
+	}
+
+	if s.restoreConfig.SyncWrite {
+		if err := s.WriteMetricToFileSync(metricInfo); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *MetricService) RestoreDataFromFile() (err error) {
+	if s.restoreConfig.Restore {
+		openFlags := os.O_RDONLY | os.O_CREATE
+		restoreFile, err := os.OpenFile(s.restoreConfig.StoreFile, openFlags, 0444)
+		if err != nil {
+			return err
+		}
+		defer func() {
+			err = restoreFile.Close()
+		}()
+
+		scan := bufio.NewScanner(restoreFile)
+		for scan.Scan() {
+			data := scan.Bytes()
+			metric := &models.Metrics{}
+			if err := json.Unmarshal(data, &metric); err != nil {
+				return err
+			}
+			if err := s.UpdateMetric(metric); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (s *MetricService) WriteMetricToFileSync(metricInfo *models.Metrics) (err error) {
+	metricBz, err := json.Marshal(metricInfo)
+	if err != nil {
+		return err
+	}
+	metricBz = append(metricBz, '\n')
+	if _, err = s.restoreFile.Write(metricBz); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *MetricService) CloseDataFile() (err error) {
+	return s.restoreFile.Close()
+}
+
+func (s *MetricService) SaveDataWithInterval() (err error) {
+	if !s.restoreConfig.Restore {
+		return nil
+	}
+	saveTicker := time.NewTicker(s.restoreConfig.StoreInterval)
+	saveChan := saveTicker.C
+	for range saveChan {
+		if err = s.WriteAllMetricsToFile(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *MetricService) GetMetricModelsAll() (allMetrics []models.Metrics, err error) {
+	gaugeNameToValue, counterNameToValue, err := s.GetMetricAll()
+	if err != nil {
+		return nil, err
+	}
+	for name, value := range gaugeNameToValue {
+		metricModel := &models.Metrics{
+			ID:    name,
+			MType: "gauge",
+			Value: &value,
+		}
+		allMetrics = append(allMetrics, *metricModel)
+	}
+	for name, delta := range counterNameToValue {
+		metricModel := &models.Metrics{
+			ID:    name,
+			MType: "counter",
+			Delta: &delta,
+		}
+		allMetrics = append(allMetrics, *metricModel)
+	}
+	return allMetrics, nil
+}
+
+func (s *MetricService) WriteAllMetricsToFile() (err error) {
+	tmpFile, err := os.CreateTemp("", "*")
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err = os.Remove(tmpFile.Name())
+	}()
+
+	writer := bufio.NewWriter(tmpFile)
+	allMetrics, err := s.GetMetricModelsAll()
+	if err != nil {
+		return err
+	}
+	for _, metric := range allMetrics {
+		metricBz, err := json.Marshal(metric)
+		if err != nil {
+			return err
+		}
+		if _, err := writer.Write(metricBz); err != nil {
+			return err
+		}
+		if err := writer.WriteByte('\n'); err != nil {
+			return err
+		}
+	}
+	if err = writer.Flush(); err != nil {
+		return err
+	}
+	if _, err = io.Copy(s.restoreFile, tmpFile); err != nil {
+		return err
 	}
 	return nil
 }

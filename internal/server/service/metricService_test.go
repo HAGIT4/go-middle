@@ -32,7 +32,7 @@ func TestUpdateGauge(t *testing.T) {
 		},
 	}
 	restoreConfig := &models.RestoreConfig{}
-	ms := service.NewMetricService(restoreConfig)
+	ms, _ := service.NewMetricService(restoreConfig)
 	metricName := "new metric"
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
