@@ -70,5 +70,6 @@ func (s *MetricService) WriteAllMetricsToFile() (err error) {
 	if err = writer.Flush(); err != nil {
 		return err
 	}
+
 	return nil
 }
