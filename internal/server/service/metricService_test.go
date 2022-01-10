@@ -45,3 +45,30 @@ func TestUpdateGauge(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdateCounter(t *testing.T) {
+	tests := []struct {
+		name  string
+		value int64
+		want  int64
+	}{
+		{
+			name:  "positive value",
+			value: 30,
+			want:  30,
+		},
+	}
+	restoreConfig := &models.RestoreConfig{}
+	ms, _ := service.NewMetricService(restoreConfig)
+	metricName := "new counter"
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ms.UpdateCounter(metricName, tt.value)
+			actualValue, err := ms.GetGauge(metricName)
+			if err != nil {
+				t.Fatal(err)
+			}
+			assert.Equal(t, tt.want, actualValue)
+		})
+	}
+}
