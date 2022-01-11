@@ -3,8 +3,10 @@ package service
 import "github.com/HAGIT4/go-middle/pkg/models"
 
 func (s *MetricService) UpdateGauge(metricName string, metricValue float64) (err error) {
-	err = s.storage.UpdateGauge(metricName, metricValue)
-	return err
+	if err = s.storage.UpdateGauge(metricName, metricValue); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *MetricService) UpdateCounter(metricName string, metricValue int64) (err error) {
@@ -13,8 +15,10 @@ func (s *MetricService) UpdateCounter(metricName string, metricValue int64) (err
 		knownValue = 0
 	}
 	newValue := knownValue + metricValue
-	err = s.storage.UpdateCounter(metricName, newValue)
-	return err
+	if err = s.storage.UpdateCounter(metricName, newValue); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *MetricService) UpdateMetric(metricInfo *models.Metrics) (err error) {

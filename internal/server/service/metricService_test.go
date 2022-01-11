@@ -31,7 +31,11 @@ func TestUpdateGauge(t *testing.T) {
 			want:  math.MaxFloat64,
 		},
 	}
-	restoreConfig := &models.RestoreConfig{}
+	restoreConfig := &models.RestoreConfig{
+		StoreInterval: 300,
+		StoreFile:     "",
+		Restore:       false,
+	}
 	ms, _ := service.NewMetricService(restoreConfig)
 	metricName := "new metric"
 	for _, tt := range tests {
@@ -58,7 +62,11 @@ func TestUpdateCounter(t *testing.T) {
 			want:  30,
 		},
 	}
-	restoreConfig := &models.RestoreConfig{}
+	restoreConfig := &models.RestoreConfig{
+		StoreInterval: 300,
+		StoreFile:     "",
+		Restore:       false,
+	}
 	ms, _ := service.NewMetricService(restoreConfig)
 	metricName := "new counter"
 	for _, tt := range tests {

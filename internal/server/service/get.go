@@ -1,6 +1,8 @@
 package service
 
-import "github.com/HAGIT4/go-middle/pkg/models"
+import (
+	"github.com/HAGIT4/go-middle/pkg/models"
+)
 
 func (s *MetricService) GetGauge(metricName string) (metricValue float64, err error) {
 	metricValue, err = s.storage.GetGauge(metricName)
