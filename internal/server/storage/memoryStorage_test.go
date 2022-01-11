@@ -1,6 +1,7 @@
 package storage_test
 
 import (
+	"log"
 	"math"
 	"testing"
 
@@ -30,7 +31,10 @@ func TestUpdateGauge(t *testing.T) {
 			want:  math.MaxFloat64,
 		},
 	}
-	ms := storage.NewMemoryStorage()
+	ms, err := storage.NewMemoryStorage()
+	if err != nil {
+		log.Fatal(err)
+	}
 	metricName := "new metric"
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

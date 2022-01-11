@@ -18,7 +18,7 @@ const (
 type metricServer struct {
 	addr    string
 	handler *metricRouter
-	ser     service.MetricServiceInterface
+	sv      service.MetricServiceInterface
 }
 
 var _ MetricServerInterface = (*metricServer)(nil)
@@ -37,25 +37,29 @@ func NewMetricServer(addr string, restoreConfig *models.RestoreConfig) (ms *metr
 	ms = &metricServer{
 		addr:    addr,
 		handler: httpMux,
-		ser:     s,
+		sv:      s,
 	}
 	return ms, nil
 }
 
 func (s *metricServer) ListenAndServe() (err error) {
+	if err = s.sv.RestoreDataFromFile(); err != nil {
+		return err
+	}
 	go func() {
 		if err := s.handler.mux.Run(s.addr); err != nil {
 			log.Fatal(err)
 		}
 	}()
-	go s.ser.SaveDataWithInterval() // err
+	go func() {
+		if err := s.sv.SaveDataWithInterval(); err != nil {
+			log.Fatal(err)
+		}
+	}()
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	<-quit
 	log.Println("Server shutdown...")
-	if err := s.ser.CloseDataFile(); err != nil {
-		return err
-	}
 
 	return nil
 }

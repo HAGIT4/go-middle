@@ -57,3 +57,31 @@ func (s *MetricService) GetMetricAll() (gaugeNameToValue map[string]float64, cou
 	}
 	return gaugeNameToValue, counterNameToValue, nil
 }
+
+func (s *MetricService) GetMetricModelsAll() (allMetrics []models.Metrics, err error) {
+	gaugeNameToValue, counterNameToValue, err := s.GetMetricAll()
+	if err != nil {
+		return nil, err
+	}
+	for nameIt, valueIt := range gaugeNameToValue {
+		name := nameIt
+		value := valueIt
+		metricModel := &models.Metrics{
+			ID:    name,
+			MType: "gauge",
+			Value: &value,
+		}
+		allMetrics = append(allMetrics, *metricModel)
+	}
+	for nameIt, deltaIt := range counterNameToValue {
+		name := nameIt
+		delta := deltaIt
+		metricModel := &models.Metrics{
+			ID:    name,
+			MType: "counter",
+			Delta: &delta,
+		}
+		allMetrics = append(allMetrics, *metricModel)
+	}
+	return allMetrics, nil
+}

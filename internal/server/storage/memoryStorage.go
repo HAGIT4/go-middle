@@ -7,13 +7,14 @@ type MemoryStorage struct {
 
 var _ StorageInterface = (*MemoryStorage)(nil)
 
-func NewMemoryStorage() *MemoryStorage {
+func NewMemoryStorage() (ms *MemoryStorage, err error) {
 	stGauge := make(map[string]float64)
 	stCounter := make(map[string]int64)
-	return &MemoryStorage{
+	ms = &MemoryStorage{
 		storageGauge:   stGauge,
 		storageCounter: stCounter,
 	}
+	return ms, nil
 }
 
 func (st *MemoryStorage) UpdateGauge(metricName string, metricValue float64) (err error) {

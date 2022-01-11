@@ -1,6 +1,7 @@
 package service_test
 
 import (
+	"log"
 	"math"
 	"testing"
 
@@ -36,7 +37,11 @@ func TestUpdateGauge(t *testing.T) {
 		StoreFile:     "",
 		Restore:       false,
 	}
-	ms, _ := service.NewMetricService(restoreConfig)
+	ms, err := service.NewMetricService(restoreConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	metricName := "new metric"
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -72,7 +77,7 @@ func TestUpdateCounter(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ms.UpdateCounter(metricName, tt.value)
-			actualValue, err := ms.GetGauge(metricName)
+			actualValue, err := ms.GetCounter(metricName)
 			if err != nil {
 				t.Fatal(err)
 			}

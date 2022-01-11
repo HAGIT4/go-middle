@@ -15,7 +15,6 @@ type MetricServiceInterface interface {
 	UpdateMetric(metricInfo *models.Metrics) (err error)
 	// backup.go
 	RestoreDataFromFile() (err error)
-	WriteAllMetricsToFile() (err error)
 	SaveDataWithInterval() (err error)
-	CloseDataFile() (err error)
+	WriteAllMetricsToFile() (err error)
 }
