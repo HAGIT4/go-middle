@@ -24,12 +24,12 @@ type metricServer struct {
 var _ MetricServerInterface = (*metricServer)(nil)
 
 func NewMetricServer(addr string, restoreConfig *models.RestoreConfig) (ms *metricServer, err error) {
-	s, err := service.NewMetricService(restoreConfig)
+	sv, err := service.NewMetricService(restoreConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	httpMux, err := newMetricRouter(s)
+	httpMux, err := newMetricRouter(sv)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func NewMetricServer(addr string, restoreConfig *models.RestoreConfig) (ms *metr
 	ms = &metricServer{
 		addr:    addr,
 		handler: httpMux,
-		sv:      s,
+		sv:      sv,
 	}
 	return ms, nil
 }

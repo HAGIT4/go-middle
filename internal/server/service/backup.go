@@ -15,7 +15,7 @@ func (s *MetricService) RestoreDataFromFile() (err error) {
 		fmt.Println("Not restoring from backup..")
 		return nil
 	}
-	openFlags := os.O_RDONLY
+	openFlags := os.O_RDONLY | os.O_CREATE
 	restoreFile, err := os.OpenFile(s.restoreConfig.StoreFile, openFlags, 0600)
 	if err != nil {
 		return err
