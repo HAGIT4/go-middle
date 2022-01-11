@@ -1,6 +1,8 @@
 package service
 
-import "github.com/HAGIT4/go-middle/pkg/models"
+import (
+	"github.com/HAGIT4/go-middle/pkg/models"
+)
 
 func (s *MetricService) UpdateGauge(metricName string, metricValue float64) (err error) {
 	if err = s.storage.UpdateGauge(metricName, metricValue); err != nil {
@@ -45,10 +47,10 @@ func (s *MetricService) UpdateMetric(metricInfo *models.Metrics) (err error) {
 		return newServiceMetricTypeUnknownError(metricType)
 	}
 
-	// if s.restoreConfig.SyncWrite {
-	// 	if err := s.WriteMetricToFileSync(metricInfo); err != nil {
-	// 		return err
-	// 	}
-	// }
+	if s.restoreConfig.SyncWrite {
+		if err := s.WriteAllMetricsToFile(); err != nil {
+			return err
+		}
+	}
 	return nil
 }

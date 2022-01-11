@@ -35,19 +35,42 @@ func (s *MetricService) RestoreDataFromFile() (err error) {
 		metrics = append(metrics, *metric)
 	}
 
-	for _, metric := range metrics {
-		if err = s.UpdateMetric(&metric); err != nil {
-			return err
+	for _, metricIt := range metrics {
+		metricInfo := metricIt
+		metricType := metricInfo.MType
+		metricName := metricInfo.ID
+		switch metricType {
+		case "gauge":
+			if metricInfo.Value == nil {
+				return newServiceNoValueUpdateError(metricName)
+			}
+			metricValue := *metricInfo.Value
+			if err := s.UpdateGauge(metricName, metricValue); err != nil {
+				return err
+			}
+		case "counter":
+			if metricInfo.Delta == nil {
+				return newServiceNoDeltaUpdateError(metricName)
+			}
+			metricDelta := *metricInfo.Delta
+			if err := s.UpdateCounter(metricName, metricDelta); err != nil {
+				return err
+			}
+		default:
+			return newServiceMetricTypeUnknownError(metricType)
 		}
 	}
 	return nil
 }
 
 func (s *MetricService) SaveDataWithInterval() (err error) {
+	if s.restoreConfig.SyncWrite {
+		fmt.Println("Sync write mode!")
+		return nil
+	}
 	saveTicker := time.NewTicker(s.restoreConfig.StoreInterval)
 	saveChan := saveTicker.C
 	for range saveChan {
-		fmt.Println("Saving metrics..")
 		if err = s.WriteAllMetricsToFile(); err != nil {
 			return err
 		}

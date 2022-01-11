@@ -56,6 +56,7 @@ func (s *metricServer) ListenAndServe() (err error) {
 			log.Fatal(err)
 		}
 	}()
+
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	<-quit

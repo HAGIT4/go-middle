@@ -18,6 +18,12 @@ func NewMetricService(restoreConfig *models.RestoreConfig) (serv *MetricService,
 		return nil, err
 	}
 
+	if restoreConfig.StoreInterval == 0 {
+		restoreConfig.SyncWrite = true
+	} else {
+		restoreConfig.SyncWrite = false
+	}
+
 	serv = &MetricService{
 		storage:       st,
 		restoreConfig: *restoreConfig,
