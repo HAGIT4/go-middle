@@ -45,7 +45,7 @@ func (s *MetricService) RestoreDataFromFile() (err error) {
 				return newServiceNoValueUpdateError(metricName)
 			}
 			metricValue := *metricInfo.Value
-			if err := s.UpdateGauge(metricName, metricValue); err != nil {
+			if err := s.updateGauge(metricName, metricValue); err != nil {
 				return err
 			}
 		case "counter":
@@ -53,7 +53,7 @@ func (s *MetricService) RestoreDataFromFile() (err error) {
 				return newServiceNoDeltaUpdateError(metricName)
 			}
 			metricDelta := *metricInfo.Delta
-			if err := s.UpdateCounter(metricName, metricDelta); err != nil {
+			if err := s.updateCounter(metricName, metricDelta); err != nil {
 				return err
 			}
 		default:

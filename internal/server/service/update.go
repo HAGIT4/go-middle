@@ -4,15 +4,15 @@ import (
 	"github.com/HAGIT4/go-middle/pkg/models"
 )
 
-func (s *MetricService) UpdateGauge(metricName string, metricValue float64) (err error) {
+func (s *MetricService) updateGauge(metricName string, metricValue float64) (err error) {
 	if err = s.storage.UpdateGauge(metricName, metricValue); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *MetricService) UpdateCounter(metricName string, metricValue int64) (err error) {
-	knownValue, err := s.GetCounter(metricName)
+func (s *MetricService) updateCounter(metricName string, metricValue int64) (err error) {
+	knownValue, err := s.getCounter(metricName)
 	if err != nil {
 		knownValue = 0
 	}
@@ -32,7 +32,7 @@ func (s *MetricService) UpdateMetric(metricInfo *models.Metrics) (err error) {
 			return newServiceNoValueUpdateError(metricName)
 		}
 		metricValue := *metricInfo.Value
-		if err := s.UpdateGauge(metricName, metricValue); err != nil {
+		if err := s.updateGauge(metricName, metricValue); err != nil {
 			return err
 		}
 	case "counter":
@@ -40,7 +40,7 @@ func (s *MetricService) UpdateMetric(metricInfo *models.Metrics) (err error) {
 			return newServiceNoDeltaUpdateError(metricName)
 		}
 		metricDelta := *metricInfo.Delta
-		if err := s.UpdateCounter(metricName, metricDelta); err != nil {
+		if err := s.updateCounter(metricName, metricDelta); err != nil {
 			return err
 		}
 	default:

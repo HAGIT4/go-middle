@@ -45,11 +45,19 @@ func TestUpdateGauge(t *testing.T) {
 	metricName := "new metric"
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ms.UpdateGauge(metricName, tt.value)
-			actualValue, err := ms.GetGauge(metricName)
+			metricInfo := &models.Metrics{
+				ID:    metricName,
+				MType: "gauge",
+				Value: &tt.value,
+			}
+			if err := ms.UpdateMetric(metricInfo); err != nil {
+				t.Fatal(err)
+			}
+			getResp, err := ms.GetMetric(metricInfo)
 			if err != nil {
 				t.Fatal(err)
 			}
+			actualValue := *getResp.Value
 			assert.Equal(t, tt.want, actualValue)
 		})
 	}
@@ -76,11 +84,19 @@ func TestUpdateCounter(t *testing.T) {
 	metricName := "new counter"
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ms.UpdateCounter(metricName, tt.value)
-			actualValue, err := ms.GetCounter(metricName)
+			metricInfo := &models.Metrics{
+				ID:    metricName,
+				MType: "counter",
+				Delta: &tt.value,
+			}
+			if err := ms.UpdateMetric(metricInfo); err != nil {
+				t.Fatal(err)
+			}
+			getResp, err := ms.GetMetric(metricInfo)
 			if err != nil {
 				t.Fatal(err)
 			}
+			actualValue := *getResp.Delta
 			assert.Equal(t, tt.want, actualValue)
 		})
 	}

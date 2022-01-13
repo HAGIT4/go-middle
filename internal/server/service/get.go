@@ -4,7 +4,7 @@ import (
 	"github.com/HAGIT4/go-middle/pkg/models"
 )
 
-func (s *MetricService) GetGauge(metricName string) (metricValue float64, err error) {
+func (s *MetricService) getGauge(metricName string) (metricValue float64, err error) {
 	metricValue, err = s.storage.GetGauge(metricName)
 	if err != nil {
 		return 0, err
@@ -12,7 +12,7 @@ func (s *MetricService) GetGauge(metricName string) (metricValue float64, err er
 	return metricValue, nil
 }
 
-func (s *MetricService) GetCounter(metricName string) (metricValue int64, err error) {
+func (s *MetricService) getCounter(metricName string) (metricValue int64, err error) {
 	metricValue, err = s.storage.GetCounter(metricName)
 	if err != nil {
 		return 0, err
@@ -29,13 +29,13 @@ func (s *MetricService) GetMetric(metricInfoReq *models.Metrics) (metricInfoResp
 	}
 	switch metricType {
 	case "gauge":
-		metricValue, err := s.GetGauge(metricName)
+		metricValue, err := s.getGauge(metricName)
 		if err != nil {
 			return nil, err
 		}
 		metricInfoResp.Value = &metricValue
 	case "counter":
-		metricDelta, err := s.GetCounter(metricName)
+		metricDelta, err := s.getCounter(metricName)
 		if err != nil {
 			return nil, err
 		}
