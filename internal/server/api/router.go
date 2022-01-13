@@ -42,6 +42,7 @@ func newMetricRouter(s service.MetricServiceInterface) (r *metricRouter, err err
 		metricName := c.Param("metricName")
 		metricValue := c.Param("metricValue")
 
+		var reqMetricMsg *models.Metrics
 		switch metricType {
 		case metricTypeGauge:
 			metricValueFloat64, err := strconv.ParseFloat(metricValue, 64)
@@ -49,10 +50,10 @@ func newMetricRouter(s service.MetricServiceInterface) (r *metricRouter, err err
 				c.AbortWithError(http.StatusBadRequest, err)
 				return
 			}
-			err = s.UpdateGauge(metricName, metricValueFloat64)
-			if err != nil {
-				c.AbortWithError(http.StatusInternalServerError, err)
-				return
+			reqMetricMsg = &models.Metrics{
+				ID:    metricName,
+				MType: metricTypeGauge,
+				Value: &metricValueFloat64,
 			}
 		case metricTypeCounter:
 			metricValueInt64, err := strconv.ParseInt(metricValue, 10, 64)
@@ -60,12 +61,18 @@ func newMetricRouter(s service.MetricServiceInterface) (r *metricRouter, err err
 				c.AbortWithError(http.StatusBadRequest, err)
 				return
 			}
-			if err := s.UpdateCounter(metricName, metricValueInt64); err != nil {
-				c.AbortWithError(http.StatusInternalServerError, err)
-				return
+			reqMetricMsg = &models.Metrics{
+				ID:    metricName,
+				MType: metricTypeGauge,
+				Delta: &metricValueInt64,
 			}
 		default:
 			c.AbortWithStatus(http.StatusNotImplemented)
+			return
+		}
+
+		if err := s.UpdateMetric(reqMetricMsg); err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
 	})
@@ -76,22 +83,22 @@ func newMetricRouter(s service.MetricServiceInterface) (r *metricRouter, err err
 		metricType := c.Param("metricType")
 		metricName := c.Param("metricName")
 
-		switch metricType {
+		reqMetricMsg := &models.Metrics{
+			ID:    metricName,
+			MType: metricType,
+		}
+
+		respMetricMsg, err := s.GetMetric(reqMetricMsg)
+		if err != nil {
+			c.AbortWithError(http.StatusNotFound, err)
+			return
+		}
+		switch respMetricMsg.MType {
 		case metricTypeGauge:
-			metricValue, err := s.GetGauge(metricName)
-			if err != nil {
-				c.AbortWithError(http.StatusNotFound, err)
-				return
-			}
-			c.String(http.StatusOK, strconv.FormatFloat(metricValue, 'f', -1, 64))
+			c.String(http.StatusOK, strconv.FormatFloat(*respMetricMsg.Value, 'f', -1, 64))
 			return
 		case metricTypeCounter:
-			metricValue, err := s.GetCounter(metricName)
-			if err != nil {
-				c.AbortWithError(http.StatusNotFound, err)
-				return
-			}
-			c.String(http.StatusOK, strconv.FormatInt(metricValue, 10))
+			c.String(http.StatusOK, strconv.FormatInt(*respMetricMsg.Delta, 10))
 			return
 		default:
 			c.AbortWithStatus(http.StatusNotFound)
