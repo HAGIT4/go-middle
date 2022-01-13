@@ -63,7 +63,7 @@ func newMetricRouter(s service.MetricServiceInterface) (r *metricRouter, err err
 			}
 			reqMetricMsg = &models.Metrics{
 				ID:    metricName,
-				MType: metricTypeGauge,
+				MType: metricTypeCounter,
 				Delta: &metricValueInt64,
 			}
 		default:
