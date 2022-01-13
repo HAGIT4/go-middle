@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"time"
 
@@ -10,23 +11,65 @@ import (
 )
 
 type Config struct {
-	ServerAddr    string        `env:"ADDRESS" envDefault:"localhost:8080"`
-	StoreInterval time.Duration `env:"STORE_INTERVAL" envDefault:"300s"`
-	StoreFile     string        `env:"STORE_FILE" envDefault:"/tmp/devops-metrics-db.json"`
-	Restore       bool          `env:"RESTORE" envDefault:"true"`
+	ServerAddr    string        `env:"ADDRESS"`
+	StoreInterval time.Duration `env:"STORE_INTERVAL"`
+	StoreFile     string        `env:"STORE_FILE"`
+	Restore       bool          `env:"RESTORE"`
+}
+
+var (
+	addressFlag       *string
+	restoreFlag       *bool
+	storeIntervalFlag *time.Duration
+	storeFileFlag     *string
+
+	address       string
+	restore       bool
+	storeInterval time.Duration
+	storeFile     string
+)
+
+func init() {
+	addressFlag = flag.String("a", "localhost:8080", "Server address:port")
+	restoreFlag = flag.Bool("r", true, "True to restore data from file")
+	storeIntervalFlag = flag.Duration("i", 300*time.Second, "Backup to file interval")
+	storeFileFlag = flag.String("f", "/tmp/devops-metrics-db.json", "File to backup")
 }
 
 func main() {
+	flag.Parse()
 	cfg := &Config{}
 	if err := env.Parse(cfg); err != nil {
 		log.Fatal(err)
 	}
-	restoreConfig := &models.RestoreConfig{
-		StoreInterval: cfg.StoreInterval,
-		StoreFile:     cfg.StoreFile,
-		Restore:       cfg.Restore,
+
+	if len(cfg.ServerAddr) == 0 {
+		address = *addressFlag
+	} else {
+		address = cfg.ServerAddr
 	}
-	s, err := api.NewMetricServer(cfg.ServerAddr, restoreConfig)
+
+	restore = cfg.Restore || *restoreFlag
+
+	if cfg.StoreInterval == 0 {
+		storeInterval = *storeIntervalFlag
+	} else {
+		storeInterval = cfg.StoreInterval
+	}
+
+	if len(cfg.StoreFile) == 0 {
+		storeFile = *storeFileFlag
+	} else {
+		storeFile = cfg.StoreFile
+	}
+
+	restoreConfig := &models.RestoreConfig{
+		StoreInterval: storeInterval,
+		StoreFile:     storeFile,
+		Restore:       restore,
+	}
+
+	s, err := api.NewMetricServer(address, restoreConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
