@@ -20,5 +20,5 @@ func main() {
 	}
 
 	a := agent.NewAgent(cfg.ServerAddr, cfg.PollInterval, cfg.ReportInterval)
-	a.SendMetricsWithInterval()
+	a.SendMetricsWithInterval(agent.TypePlain)
 }
