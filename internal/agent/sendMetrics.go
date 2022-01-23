@@ -35,7 +35,7 @@ func prepareHeaders(st sendType, req *http.Request) (err error) {
 	return nil
 }
 
-func prepareUrl(st sendType, serverAddress string, metricInfo *models.Metrics) (url string, err error) {
+func prepareURL(st sendType, serverAddress string, metricInfo *models.Metrics) (url string, err error) {
 	var urlTemplate string
 	switch st {
 	case TypePlain:
@@ -83,7 +83,7 @@ func (a *agent) SendMetrics(st sendType, data *agentData, pollCount int64) (err 
 			MType: "gauge",
 			Value: &value,
 		}
-		reqURL, err = prepareUrl(st, a.serverAddr, reqMetricInfo)
+		reqURL, err = prepareURL(st, a.serverAddr, reqMetricInfo)
 		if err != nil {
 			return err
 		}
@@ -111,7 +111,7 @@ func (a *agent) SendMetrics(st sendType, data *agentData, pollCount int64) (err 
 		MType: "counter",
 		Delta: &pollCount,
 	}
-	reqURL, err = prepareUrl(st, a.serverAddr, reqMetricInfo)
+	reqURL, err = prepareURL(st, a.serverAddr, reqMetricInfo)
 	if err != nil {
 		return err
 	}
