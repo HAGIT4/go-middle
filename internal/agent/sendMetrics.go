@@ -75,7 +75,7 @@ func prepareData(st sendType, metricInfo *models.Metrics) (data io.Reader, err e
 }
 
 func (a *agent) SendMetrics(st sendType, data *agentData, pollCount int64) (err error) {
-	var reqUrl string
+	var reqURL string
 	var reqData io.Reader
 	for metric, value := range *data.agentDataGauge {
 		reqMetricInfo := &models.Metrics{
@@ -83,7 +83,7 @@ func (a *agent) SendMetrics(st sendType, data *agentData, pollCount int64) (err 
 			MType: "gauge",
 			Value: &value,
 		}
-		reqUrl, err = prepareUrl(st, a.serverAddr, reqMetricInfo)
+		reqURL, err = prepareUrl(st, a.serverAddr, reqMetricInfo)
 		if err != nil {
 			return err
 		}
@@ -93,7 +93,7 @@ func (a *agent) SendMetrics(st sendType, data *agentData, pollCount int64) (err 
 		}
 
 		ctx := context.TODO()
-		req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqUrl, reqData)
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, reqData)
 		if err != nil {
 			return err
 		}
@@ -111,7 +111,7 @@ func (a *agent) SendMetrics(st sendType, data *agentData, pollCount int64) (err 
 		MType: "counter",
 		Delta: &pollCount,
 	}
-	reqUrl, err = prepareUrl(st, a.serverAddr, reqMetricInfo)
+	reqURL, err = prepareUrl(st, a.serverAddr, reqMetricInfo)
 	if err != nil {
 		return err
 	}
@@ -121,7 +121,7 @@ func (a *agent) SendMetrics(st sendType, data *agentData, pollCount int64) (err 
 	}
 
 	ctx := context.TODO()
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqUrl, reqData)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, reqData)
 	if err != nil {
 		return err
 	}
