@@ -12,6 +12,8 @@ import (
 const (
 	plainTextParseMethodGet = iota
 	plainTextParseMethodPost
+	getResponseFormatJSON
+	getResponseFormatPlain
 )
 
 func parseJSONrequest() (h gin.HandlerFunc) {
@@ -176,7 +178,7 @@ func getByResolveHandler(s service.MetricServiceInterface) (h gin.HandlerFunc) {
 	}
 }
 
-func getHandler(s service.MetricServiceInterface) (h gin.HandlerFunc) {
+func getHandler(s service.MetricServiceInterface, getResponseFormat int) (h gin.HandlerFunc) {
 	h = func(c *gin.Context) {
 		var reqMetricModel interface{}
 		var found bool
@@ -188,7 +190,24 @@ func getHandler(s service.MetricServiceInterface) (h gin.HandlerFunc) {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
-		c.JSON(http.StatusOK, respMetricModel)
+		if getResponseFormat == getResponseFormatJSON {
+			c.JSON(http.StatusOK, respMetricModel)
+			return
+		} else if getResponseFormat == getResponseFormatPlain {
+			switch respMetricModel.MType {
+			case metricTypeGauge:
+				c.String(http.StatusOK, strconv.FormatFloat(*respMetricModel.Value, 'f', -1, 64))
+				return
+			case metricTypeCounter:
+				c.String(http.StatusOK, strconv.FormatInt(*respMetricModel.Delta, 10))
+				return
+			default:
+				c.AbortWithStatus(http.StatusNotFound)
+				return
+			}
+		} else {
+			return
+		}
 	}
 	return
 }

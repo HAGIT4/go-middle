@@ -20,8 +20,8 @@ func newMetricRouter(s service.MetricServiceInterface) (r *metricRouter, err err
 
 	mux.POST("/update/", parseJSONrequest(), updateHandler(s))
 	mux.POST("/update/:metricType/:metricName/:metricValue", parsePlainTextRequest(plainTextParseMethodPost), updateHandler(s))
-	mux.GET("/value/:metricType/:metricName", parsePlainTextRequest(plainTextParseMethodGet), getHandler(s))
-	mux.POST("/value/", parseJSONrequest(), getHandler(s))
+	mux.GET("/value/:metricType/:metricName", parsePlainTextRequest(plainTextParseMethodGet), getHandler(s, getResponseFormatPlain))
+	mux.POST("/value/", parseJSONrequest(), getHandler(s, getResponseFormatJSON))
 	mux.GET("/", getAllDataHTMLhandler(s))
 
 	r = &metricRouter{
