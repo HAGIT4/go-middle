@@ -64,7 +64,7 @@ func parsePlainTextRequest(parseMethod int) (h gin.HandlerFunc) {
 			}
 		}
 		c.Header("application-type", "text/plain")
-		c.Set("requestModel", &reqMetricModel)
+		c.Set("requestModel", reqMetricModel)
 	}
 	return
 }
