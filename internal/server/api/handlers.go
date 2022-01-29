@@ -29,11 +29,6 @@ func parseJSONrequest() (h gin.HandlerFunc) {
 
 func parsePlainTextRequest() (h gin.HandlerFunc) {
 	h = func(c *gin.Context) {
-		applicationTypeHeader := c.Request.Header.Get("application-type")
-		if applicationTypeHeader != "text/plain" {
-			c.AbortWithError(http.StatusBadRequest, newAPINoJSONHeaderError()) // TODO DOTO
-			return
-		}
 		metricType := c.Param("metricType")
 		metricName := c.Param("metricName")
 		metricValue := c.Param("metricValue")
