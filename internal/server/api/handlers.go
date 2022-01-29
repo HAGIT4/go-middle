@@ -9,6 +9,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	plainTextParseMethodGet = iota
+	plainTextParseMethodPost
+)
+
 func parseJSONrequest() (h gin.HandlerFunc) {
 	h = func(c *gin.Context) {
 		contentHeader := c.Request.Header.Get("Content-Type")
@@ -27,41 +32,40 @@ func parseJSONrequest() (h gin.HandlerFunc) {
 	return
 }
 
-func parsePlainTextRequest() (h gin.HandlerFunc) {
+func parsePlainTextRequest(parseMethod int) (h gin.HandlerFunc) {
 	h = func(c *gin.Context) {
 		metricType := c.Param("metricType")
 		metricName := c.Param("metricName")
-		metricValue := c.Param("metricValue")
-		var reqMetricModel models.Metrics
-		switch metricType {
-		case metricTypeGauge:
-			metricValueFloat64, err := strconv.ParseFloat(metricValue, 64)
-			if err != nil {
-				c.AbortWithError(http.StatusBadRequest, err)
+		reqMetricModel := &models.Metrics{
+			ID:    metricName,
+			MType: metricType,
+		}
+
+		if parseMethod == plainTextParseMethodPost {
+			metricValue := c.Param("metricValue")
+			switch metricType {
+			case metricTypeGauge:
+				metricValueFloat64, err := strconv.ParseFloat(metricValue, 64)
+				if err != nil {
+					c.AbortWithError(http.StatusBadRequest, err)
+					return
+				}
+				reqMetricModel.Value = &metricValueFloat64
+			case metricTypeCounter:
+				metricValueInt64, err := strconv.ParseInt(metricValue, 10, 64)
+				if err != nil {
+					c.AbortWithError(http.StatusBadRequest, err)
+					return
+				}
+				reqMetricModel.Delta = &metricValueInt64
+			default:
+				c.AbortWithStatus(http.StatusNotImplemented)
 				return
 			}
-			reqMetricModel = models.Metrics{
-				ID:    metricName,
-				MType: metricTypeGauge,
-				Value: &metricValueFloat64,
-			}
-		case metricTypeCounter:
-			metricValueInt64, err := strconv.ParseInt(metricValue, 10, 64)
-			if err != nil {
-				c.AbortWithError(http.StatusBadRequest, err)
-				return
-			}
-			reqMetricModel = models.Metrics{
-				ID:    metricName,
-				MType: metricTypeCounter,
-				Delta: &metricValueInt64,
-			}
-		default:
-			c.AbortWithStatus(http.StatusNotImplemented)
-			return
 		}
 		c.Header("application-type", "text/plain")
 		c.Set("requestModel", &reqMetricModel)
+		return
 	}
 	return
 }
