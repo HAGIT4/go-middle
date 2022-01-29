@@ -229,7 +229,6 @@ func getByJSONhandler(s service.MetricServiceInterface) (h gin.HandlerFunc) {
 			c.AbortWithError(http.StatusNotFound, err)
 			return
 		}
-		c.Header("Content-Type", "application/json")
 		c.JSON(http.StatusOK, respMetricMsg)
 	}
 }
