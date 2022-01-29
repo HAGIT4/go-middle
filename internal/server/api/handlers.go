@@ -187,7 +187,7 @@ func getHandler(s service.MetricServiceInterface, getResponseFormat int) (h gin.
 		}
 		respMetricModel, err := s.GetMetric(reqMetricModel.(*models.Metrics))
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			c.AbortWithError(http.StatusNotFound, err)
 			return
 		}
 		if getResponseFormat == getResponseFormatJSON {
