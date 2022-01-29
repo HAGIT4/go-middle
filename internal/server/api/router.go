@@ -18,10 +18,10 @@ func newMetricRouter(s service.MetricServiceInterface) (r *metricRouter, err err
 	mux.RedirectTrailingSlash = false
 	mux.LoadHTMLFiles("web/template/allMetrics.html")
 
-	mux.POST("/update/", updateByJSONhandler(s))
-	mux.POST("/update/:metricType/:metricName/:metricValue", updateByResolveHandler(s))
-	mux.GET("/value/:metricType/:metricName", getByResolveHandler(s))
-	mux.POST("/value/", getByJSONhandler(s))
+	mux.POST("/update/", parseJSONrequest(), updateHandler(s))
+	mux.POST("/update/:metricType/:metricName/:metricValue", parsePlainTextRequest(), updateHandler(s))
+	mux.GET("/value/:metricType/:metricName", parsePlainTextRequest(), getHandler(s))
+	mux.POST("/value/", parseJSONrequest(), getHandler(s))
 	mux.GET("/", getAllDataHTMLhandler(s))
 
 	r = &metricRouter{

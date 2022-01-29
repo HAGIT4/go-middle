@@ -9,6 +9,82 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func parseJSONrequest() (h gin.HandlerFunc) {
+	h = func(c *gin.Context) {
+		contentHeader := c.Request.Header.Get("Content-Type")
+		if contentHeader != "application/json" {
+			c.AbortWithError(http.StatusBadRequest, newAPINoJSONHeaderError())
+			return
+		}
+		reqMetricModel := models.Metrics{}
+		if err := c.BindJSON(&reqMetricModel); err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+		c.Header("Content-Type", "application/json")
+		c.Set("requestModel", &reqMetricModel)
+	}
+	return
+}
+
+func parsePlainTextRequest() (h gin.HandlerFunc) {
+	h = func(c *gin.Context) {
+		applicationTypeHeader := c.Request.Header.Get("application-type")
+		if applicationTypeHeader != "text/plain" {
+			c.AbortWithError(http.StatusBadRequest, newAPINoJSONHeaderError()) // TODO DOTO
+			return
+		}
+		metricType := c.Param("metricType")
+		metricName := c.Param("metricName")
+		metricValue := c.Param("metricValue")
+		var reqMetricModel models.Metrics
+		switch metricType {
+		case metricTypeGauge:
+			metricValueFloat64, err := strconv.ParseFloat(metricValue, 64)
+			if err != nil {
+				c.AbortWithError(http.StatusBadRequest, err)
+				return
+			}
+			reqMetricModel = models.Metrics{
+				ID:    metricName,
+				MType: metricTypeGauge,
+				Value: &metricValueFloat64,
+			}
+		case metricTypeCounter:
+			metricValueInt64, err := strconv.ParseInt(metricValue, 10, 64)
+			if err != nil {
+				c.AbortWithError(http.StatusBadRequest, err)
+				return
+			}
+			reqMetricModel = models.Metrics{
+				ID:    metricName,
+				MType: metricTypeCounter,
+				Delta: &metricValueInt64,
+			}
+		default:
+			c.AbortWithStatus(http.StatusNotImplemented)
+			return
+		}
+		c.Header("application-type", "text/plain")
+		c.Set("requestModel", &reqMetricModel)
+	}
+	return
+}
+
+func updateHandler(s service.MetricServiceInterface) (h gin.HandlerFunc) {
+	h = func(c *gin.Context) {
+		var reqMetricModel interface{}
+		var found bool
+		if reqMetricModel, found = c.Get("requestModel"); !found {
+			c.AbortWithStatus(http.StatusInternalServerError)
+		}
+		if err := s.UpdateMetric(reqMetricModel.(*models.Metrics)); err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+		}
+	}
+	return
+}
+
 func updateByJSONhandler(s service.MetricServiceInterface) (h gin.HandlerFunc) {
 	return func(c *gin.Context) {
 		contentHeader := c.Request.Header.Get("Content-Type")
@@ -102,6 +178,23 @@ func getByResolveHandler(s service.MetricServiceInterface) (h gin.HandlerFunc) {
 	}
 }
 
+func getHandler(s service.MetricServiceInterface) (h gin.HandlerFunc) {
+	h = func(c *gin.Context) {
+		var reqMetricModel interface{}
+		var found bool
+		if reqMetricModel, found = c.Get("requestModel"); !found {
+			c.AbortWithStatus(http.StatusInternalServerError)
+		}
+		respMetricModel, err := s.GetMetric(reqMetricModel.(*models.Metrics))
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+		c.JSON(http.StatusOK, respMetricModel)
+	}
+	return
+}
+
 func getByJSONhandler(s service.MetricServiceInterface) (h gin.HandlerFunc) {
 	return func(c *gin.Context) {
 		reqContentHeader := c.Request.Header.Get("Content-Type")
@@ -127,7 +220,6 @@ func getByJSONhandler(s service.MetricServiceInterface) (h gin.HandlerFunc) {
 func getAllDataHTMLhandler(s service.MetricServiceInterface) (h gin.HandlerFunc) {
 	return func(c *gin.Context) {
 		c.Header("application-type", "text/plain")
-
 		gaugeNameToValue, counterNameToValue, err := s.GetMetricAll()
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)

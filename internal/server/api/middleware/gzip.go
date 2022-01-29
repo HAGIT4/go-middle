@@ -66,7 +66,9 @@ func GzipReadMiddleware() (h gin.HandlerFunc) {
 	return func(c *gin.Context) {
 		if c.Request.Header.Get("Content-Encoding") == "gzip" {
 			gz, err := gzip.NewReader(c.Request.Body)
-			if err != nil {
+			if err == io.EOF {
+				return
+			} else if err != nil {
 				c.AbortWithError(http.StatusInternalServerError, err)
 				return
 			}
@@ -78,6 +80,7 @@ func GzipReadMiddleware() (h gin.HandlerFunc) {
 				return
 			}
 			c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
+
 		}
 	}
 }
