@@ -49,6 +49,5 @@ func (s *MetricService) ComputeHash(metric *models.Metrics) (err error) {
 	default:
 		return newServiceMetricTypeUnknownError(metric.MType)
 	}
-	fmt.Println("Hash computed!")
 	return nil
 }

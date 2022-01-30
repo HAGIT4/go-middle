@@ -85,7 +85,7 @@ func getHandler(s service.MetricServiceInterface, getResponseFormat int) (h gin.
 		}
 		c.Set("responseModel", respMetricModel)
 		if getResponseFormat == getResponseFormatJSON {
-			c.JSON(http.StatusOK, respMetricModel)
+			c.JSON(http.StatusOK, *respMetricModel)
 			return
 		} else if getResponseFormat == getResponseFormatPlain {
 			switch respMetricModel.MType {
