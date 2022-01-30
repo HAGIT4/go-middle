@@ -24,7 +24,6 @@ func (s *MetricService) CheckHash(metric *models.Metrics) (err error) {
 	case "gauge":
 		h.Write([]byte(fmt.Sprintf("%s:gauge:%f", metric.ID, *metric.Value)))
 		localHash = h.Sum(nil)
-		fmt.Println("Here")
 	case "counter":
 		h.Write([]byte(fmt.Sprintf("%s:counter:%d", metric.ID, *metric.Delta)))
 		localHash = h.Sum(nil)
@@ -42,7 +41,7 @@ func (s *MetricService) ComputeHash(metric *models.Metrics) (err error) {
 	switch metric.MType {
 	case "gauge":
 		h.Write([]byte(fmt.Sprintf("%s:gauge:%f", metric.ID, *metric.Value)))
-		metric.Hash = string(h.Sum(nil))
+		metric.Hash = hex.EncodeToString(h.Sum(nil))
 	case "counter":
 		h.Write([]byte(fmt.Sprintf("%s:counter:%d", metric.ID, *metric.Delta)))
 		metric.Hash = hex.EncodeToString(h.Sum(nil))
