@@ -28,7 +28,6 @@ func parseJSONrequest() (h gin.HandlerFunc) {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
-		c.Header("Content-Type", "application/json")
 		c.Set("requestModel", reqMetricModel)
 	}
 	return
