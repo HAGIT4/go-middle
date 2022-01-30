@@ -82,6 +82,9 @@ func getHandler(s service.MetricServiceInterface, getResponseFormat int) (h gin.
 			c.AbortWithError(http.StatusNotFound, err)
 			return
 		}
+		if err := s.ComputeHash(respMetricModel); err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+		}
 		if getResponseFormat == getResponseFormatJSON {
 			c.JSON(http.StatusOK, *respMetricModel)
 			return
