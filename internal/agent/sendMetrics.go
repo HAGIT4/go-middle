@@ -3,6 +3,8 @@ package agent
 import (
 	"bytes"
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -74,6 +76,21 @@ func prepareData(st sendType, metricInfo *models.Metrics) (data io.Reader, err e
 	}
 }
 
+func (a *agent) hashData(metric *models.Metrics) (err error) {
+	h := hmac.New(sha256.New, []byte(a.hashKey)) // change type
+	switch metric.MType {
+	case "gauge":
+		h.Write([]byte(fmt.Sprintf("%s:gauge:%f", metric.ID, *metric.Value)))
+		metric.Hash = string(h.Sum(nil))
+	case "counter":
+		h.Write([]byte(fmt.Sprintf("%s:counter:%d", metric.ID, *metric.Delta)))
+		metric.Hash = string(h.Sum(nil))
+	default:
+		return newUnknownMetricTypeError(metric.MType)
+	}
+	return nil
+}
+
 func (a *agent) SendMetrics(st sendType, data *agentData, pollCount int64) (err error) {
 	var reqURL string
 	var reqData io.Reader
@@ -83,6 +100,10 @@ func (a *agent) SendMetrics(st sendType, data *agentData, pollCount int64) (err 
 			MType: "gauge",
 			Value: &value,
 		}
+		if a.hashKey != "" {
+			a.hashData(reqMetricInfo)
+		}
+
 		reqURL, err = prepareURL(st, a.serverAddr, reqMetricInfo)
 		if err != nil {
 			return err
@@ -91,7 +112,6 @@ func (a *agent) SendMetrics(st sendType, data *agentData, pollCount int64) (err 
 		if err != nil {
 			return err
 		}
-
 		ctx := context.TODO()
 		req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, reqData)
 		if err != nil {
