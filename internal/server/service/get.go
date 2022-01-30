@@ -43,6 +43,11 @@ func (s *MetricService) GetMetric(metricInfoReq *models.Metrics) (metricInfoResp
 	default:
 		return nil, newServiceMetricTypeUnknownError(metricType)
 	}
+
+	if len(s.hashKey) > 0 {
+		s.ComputeHash(metricInfoResp)
+	}
+
 	return metricInfoResp, nil
 }
 

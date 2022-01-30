@@ -8,11 +8,12 @@ import (
 type MetricService struct {
 	storage       storage.StorageInterface
 	restoreConfig models.RestoreConfig
+	hashKey       string
 }
 
 var _ MetricServiceInterface = (*MetricService)(nil)
 
-func NewMetricService(restoreConfig *models.RestoreConfig) (serv *MetricService, err error) {
+func NewMetricService(restoreConfig *models.RestoreConfig, hashKey string) (serv *MetricService, err error) {
 	st, err := storage.NewMemoryStorage()
 	if err != nil {
 		return nil, err
@@ -27,6 +28,7 @@ func NewMetricService(restoreConfig *models.RestoreConfig) (serv *MetricService,
 	serv = &MetricService{
 		storage:       st,
 		restoreConfig: *restoreConfig,
+		hashKey:       hashKey,
 	}
 
 	return serv, nil

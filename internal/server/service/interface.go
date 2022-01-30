@@ -17,4 +17,8 @@ type MetricServiceInterface interface {
 	RestoreDataFromFile() (err error)
 	SaveDataWithInterval() (err error)
 	WriteAllMetricsToFile() (err error)
+	// hash.go
+	CheckHash(metric *models.Metrics) (err error)
+	ComputeHash(metric *models.Metrics) (err error)
+	GetHashKey() string
 }

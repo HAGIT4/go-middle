@@ -21,5 +21,5 @@ func main() {
 	}
 
 	a := agent.NewAgent(cfg.ServerAddr, cfg.PollInterval, cfg.ReportInterval, cfg.HashKey)
-	a.SendMetricsWithInterval(agent.TypePlain)
+	a.SendMetricsWithInterval(agent.TypeJSON)
 }

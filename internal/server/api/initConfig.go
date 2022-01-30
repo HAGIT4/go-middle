@@ -13,11 +13,13 @@ type EnvConfig struct {
 	StoreInterval time.Duration `env:"STORE_INTERVAL"`
 	StoreFile     string        `env:"STORE_FILE"`
 	Restore       bool          `env:"RESTORE"`
+	HashKey       string        `env:"KEY"`
 }
 
 type ServerConfig struct {
 	ServerAddr    string
 	RestoreConfig *models.RestoreConfig
+	HashKey       string
 }
 
 var (
@@ -25,6 +27,7 @@ var (
 	restoreFlag       *bool
 	storeIntervalFlag *time.Duration
 	storeFileFlag     *string
+	hashKeyFlag       *string
 )
 
 func InitConfig() (cfg *ServerConfig, err error) {
@@ -32,6 +35,7 @@ func InitConfig() (cfg *ServerConfig, err error) {
 	restoreFlag = flag.Bool("r", true, "True to restore data from file")
 	storeIntervalFlag = flag.Duration("i", 300*time.Second, "Backup to file interval")
 	storeFileFlag = flag.String("f", "/tmp/devops-metrics-db.json", "File to backup")
+	hashKeyFlag = flag.String("k", "", "Key for hashing")
 	flag.Parse()
 
 	envCfg := &EnvConfig{}
@@ -61,6 +65,12 @@ func InitConfig() (cfg *ServerConfig, err error) {
 		cfg.RestoreConfig.StoreFile = *storeFileFlag
 	} else {
 		cfg.RestoreConfig.StoreFile = envCfg.StoreFile
+	}
+
+	if len(envCfg.HashKey) == 0 {
+		cfg.HashKey = *hashKeyFlag
+	} else {
+		cfg.HashKey = envCfg.HashKey
 	}
 
 	return cfg, nil

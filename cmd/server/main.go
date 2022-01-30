@@ -11,7 +11,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	s, err := api.NewMetricServer(cfg.ServerAddr, cfg.RestoreConfig)
+	s, err := api.NewMetricServer(cfg.ServerAddr, cfg.RestoreConfig, cfg.HashKey)
 	if err != nil {
 		log.Fatal(err)
 	}

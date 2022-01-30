@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -81,10 +82,10 @@ func (a *agent) hashData(metric *models.Metrics) (err error) {
 	switch metric.MType {
 	case "gauge":
 		h.Write([]byte(fmt.Sprintf("%s:gauge:%f", metric.ID, *metric.Value)))
-		metric.Hash = string(h.Sum(nil))
+		metric.Hash = hex.EncodeToString(h.Sum(nil))
 	case "counter":
 		h.Write([]byte(fmt.Sprintf("%s:counter:%d", metric.ID, *metric.Delta)))
-		metric.Hash = string(h.Sum(nil))
+		metric.Hash = hex.EncodeToString(h.Sum(nil))
 	default:
 		return newUnknownMetricTypeError(metric.MType)
 	}
@@ -131,6 +132,10 @@ func (a *agent) SendMetrics(st sendType, data *agentData, pollCount int64) (err 
 		MType: "counter",
 		Delta: &pollCount,
 	}
+	if a.hashKey != "" {
+		a.hashData(reqMetricInfo)
+	}
+
 	reqURL, err = prepareURL(st, a.serverAddr, reqMetricInfo)
 	if err != nil {
 		return err

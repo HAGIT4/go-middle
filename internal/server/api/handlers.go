@@ -23,13 +23,13 @@ func parseJSONrequest() (h gin.HandlerFunc) {
 			c.AbortWithError(http.StatusBadRequest, newAPINoJSONHeaderError())
 			return
 		}
-		reqMetricModel := models.Metrics{}
-		if err := c.BindJSON(&reqMetricModel); err != nil {
+		reqMetricModel := &models.Metrics{}
+		if err := c.BindJSON(reqMetricModel); err != nil {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
 		c.Header("Content-Type", "application/json")
-		c.Set("requestModel", &reqMetricModel)
+		c.Set("requestModel", reqMetricModel)
 	}
 	return
 }
@@ -69,6 +69,56 @@ func parsePlainTextRequest(parseMethod int) (h gin.HandlerFunc) {
 		c.Set("requestModel", reqMetricModel)
 	}
 	return
+}
+
+func getHandler(s service.MetricServiceInterface, getResponseFormat int) (h gin.HandlerFunc) {
+	h = func(c *gin.Context) {
+		var reqMetricModel interface{}
+		var found bool
+		if reqMetricModel, found = c.Get("requestModel"); !found {
+			c.AbortWithStatus(http.StatusInternalServerError)
+		}
+		respMetricModel, err := s.GetMetric(reqMetricModel.(*models.Metrics))
+		if err != nil {
+			c.AbortWithError(http.StatusNotFound, err)
+			return
+		}
+		c.Set("responseModel", respMetricModel)
+		if getResponseFormat == getResponseFormatJSON {
+			c.JSON(http.StatusOK, respMetricModel)
+			return
+		} else if getResponseFormat == getResponseFormatPlain {
+			switch respMetricModel.MType {
+			case metricTypeGauge:
+				c.String(http.StatusOK, strconv.FormatFloat(*respMetricModel.Value, 'f', -1, 64))
+				return
+			case metricTypeCounter:
+				c.String(http.StatusOK, strconv.FormatInt(*respMetricModel.Delta, 10))
+				return
+			default:
+				c.AbortWithStatus(http.StatusNotFound)
+				return
+			}
+		} else {
+			return
+		}
+	}
+	return
+}
+
+func getAllDataHTMLhandler(s service.MetricServiceInterface) (h gin.HandlerFunc) {
+	return func(c *gin.Context) {
+		c.Header("application-type", "text/plain")
+		gaugeNameToValue, counterNameToValue, err := s.GetMetricAll()
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+		c.HTML(http.StatusOK, "allMetrics.html", gin.H{
+			"GaugeMap":   gaugeNameToValue,
+			"CounterMap": counterNameToValue,
+		})
+	}
 }
 
 func updateHandler(s service.MetricServiceInterface) (h gin.HandlerFunc) {
@@ -178,40 +228,6 @@ func getByResolveHandler(s service.MetricServiceInterface) (h gin.HandlerFunc) {
 	}
 }
 
-func getHandler(s service.MetricServiceInterface, getResponseFormat int) (h gin.HandlerFunc) {
-	h = func(c *gin.Context) {
-		var reqMetricModel interface{}
-		var found bool
-		if reqMetricModel, found = c.Get("requestModel"); !found {
-			c.AbortWithStatus(http.StatusInternalServerError)
-		}
-		respMetricModel, err := s.GetMetric(reqMetricModel.(*models.Metrics))
-		if err != nil {
-			c.AbortWithError(http.StatusNotFound, err)
-			return
-		}
-		if getResponseFormat == getResponseFormatJSON {
-			c.JSON(http.StatusOK, respMetricModel)
-			return
-		} else if getResponseFormat == getResponseFormatPlain {
-			switch respMetricModel.MType {
-			case metricTypeGauge:
-				c.String(http.StatusOK, strconv.FormatFloat(*respMetricModel.Value, 'f', -1, 64))
-				return
-			case metricTypeCounter:
-				c.String(http.StatusOK, strconv.FormatInt(*respMetricModel.Delta, 10))
-				return
-			default:
-				c.AbortWithStatus(http.StatusNotFound)
-				return
-			}
-		} else {
-			return
-		}
-	}
-	return
-}
-
 func getByJSONhandler(s service.MetricServiceInterface) (h gin.HandlerFunc) {
 	return func(c *gin.Context) {
 		reqContentHeader := c.Request.Header.Get("Content-Type")
@@ -230,20 +246,5 @@ func getByJSONhandler(s service.MetricServiceInterface) (h gin.HandlerFunc) {
 			return
 		}
 		c.JSON(http.StatusOK, respMetricMsg)
-	}
-}
-
-func getAllDataHTMLhandler(s service.MetricServiceInterface) (h gin.HandlerFunc) {
-	return func(c *gin.Context) {
-		c.Header("application-type", "text/plain")
-		gaugeNameToValue, counterNameToValue, err := s.GetMetricAll()
-		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
-			return
-		}
-		c.HTML(http.StatusOK, "allMetrics.html", gin.H{
-			"GaugeMap":   gaugeNameToValue,
-			"CounterMap": counterNameToValue,
-		})
 	}
 }

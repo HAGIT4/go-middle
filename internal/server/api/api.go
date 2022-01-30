@@ -23,8 +23,8 @@ type metricServer struct {
 
 var _ MetricServerInterface = (*metricServer)(nil)
 
-func NewMetricServer(addr string, restoreConfig *models.RestoreConfig) (ms *metricServer, err error) {
-	sv, err := service.NewMetricService(restoreConfig)
+func NewMetricServer(addr string, restoreConfig *models.RestoreConfig, hashKey string) (ms *metricServer, err error) {
+	sv, err := service.NewMetricService(restoreConfig, hashKey)
 	if err != nil {
 		return nil, err
 	}
