@@ -13,8 +13,8 @@ type metricRouter struct {
 
 func newMetricRouter(s service.MetricServiceInterface) (r *metricRouter, err error) {
 	mux := gin.Default()
-	// mux.Use(middleware.GzipReadMiddleware())
-	// mux.Use(middleware.GzipWriteMiddleware())
+	mux.Use(middleware.GzipReadMiddleware())
+	mux.Use(middleware.GzipWriteMiddleware())
 	mux.RedirectTrailingSlash = false
 	mux.LoadHTMLFiles("web/template/allMetrics.html")
 
