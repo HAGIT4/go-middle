@@ -73,17 +73,17 @@ func parsePlainTextRequest(parseMethod int) (h gin.HandlerFunc) {
 
 func getHandler(s service.MetricServiceInterface, getResponseFormat int) (h gin.HandlerFunc) {
 	h = func(c *gin.Context) {
-		var reqMetricModel interface{}
+		var reqMetric interface{}
 		var found bool
-		if reqMetricModel, found = c.Get("requestModel"); !found {
+		if reqMetric, found = c.Get("requestModel"); !found {
 			c.AbortWithStatus(http.StatusInternalServerError)
 		}
-		respMetricModel, err := s.GetMetric(reqMetricModel.(*models.Metrics))
+		reqMetricModel := reqMetric.(*models.Metrics)
+		respMetricModel, err := s.GetMetric(reqMetricModel)
 		if err != nil {
 			c.AbortWithError(http.StatusNotFound, err)
 			return
 		}
-		c.Set("responseModel", respMetricModel)
 		if getResponseFormat == getResponseFormatJSON {
 			c.JSON(http.StatusOK, *respMetricModel)
 			return
