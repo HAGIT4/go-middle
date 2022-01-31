@@ -46,16 +46,7 @@ func InitConfig() (cfg *ServerConfig, err error) {
 	if err := env.Parse(envCfg); err != nil {
 		return nil, err
 	}
-
-	restoreConfig := &models.RestoreConfig{}
-	cfg = &ServerConfig{
-		RestoreConfig: restoreConfig,
-	}
-	if len(envCfg.ServerAddr) == 0 {
-		cfg.ServerAddr = *addressFlag
-	} else {
-		cfg.ServerAddr = envCfg.ServerAddr
-	}
+	cfg = &ServerConfig{}
 
 	if len(envCfg.DatabaseDSN) == 0 {
 		cfg.DatabaseDSN = *databaseDSNflag
@@ -63,19 +54,30 @@ func InitConfig() (cfg *ServerConfig, err error) {
 		cfg.DatabaseDSN = envCfg.DatabaseDSN
 	}
 
-	if len(cfg.DatabaseDSN) == 0 {
+	if len(envCfg.DatabaseDSN) == 0 {
+		restoreConfig := &models.RestoreConfig{}
+
 		if len(envCfg.StoreFile) == 0 {
-			cfg.RestoreConfig.StoreFile = *storeFileFlag
+			restoreConfig.StoreFile = *storeFileFlag
 		} else {
-			cfg.RestoreConfig.StoreFile = envCfg.StoreFile
+			restoreConfig.StoreFile = envCfg.StoreFile
 		}
-		cfg.RestoreConfig.Restore = envCfg.Restore || *restoreFlag
+		restoreConfig.Restore = envCfg.Restore || *restoreFlag
 
 		if envCfg.StoreInterval == 0 {
-			cfg.RestoreConfig.StoreInterval = *storeIntervalFlag
+			restoreConfig.StoreInterval = *storeIntervalFlag
 		} else {
-			cfg.RestoreConfig.StoreInterval = envCfg.StoreInterval
+			restoreConfig.StoreInterval = envCfg.StoreInterval
 		}
+		cfg.RestoreConfig = restoreConfig
+	} else {
+		cfg.RestoreConfig = nil
+	}
+
+	if len(envCfg.ServerAddr) == 0 {
+		cfg.ServerAddr = *addressFlag
+	} else {
+		cfg.ServerAddr = envCfg.ServerAddr
 	}
 
 	if len(envCfg.HashKey) == 0 {

@@ -7,7 +7,7 @@ import (
 
 type MetricService struct {
 	storage       storage.StorageInterface
-	restoreConfig models.RestoreConfig
+	restoreConfig *models.RestoreConfig
 	hashKey       string
 }
 
@@ -19,15 +19,17 @@ func NewMetricService(restoreConfig *models.RestoreConfig, hashKey string) (serv
 		return nil, err
 	}
 
-	if restoreConfig.StoreInterval == 0 && len(restoreConfig.StoreFile) > 0 {
-		restoreConfig.SyncWrite = true
-	} else {
-		restoreConfig.SyncWrite = false
+	if restoreConfig != nil {
+		if restoreConfig.StoreInterval == 0 {
+			restoreConfig.SyncWrite = true
+		} else {
+			restoreConfig.SyncWrite = false
+		}
 	}
 
 	serv = &MetricService{
 		storage:       st,
-		restoreConfig: *restoreConfig,
+		restoreConfig: restoreConfig,
 		hashKey:       hashKey,
 	}
 
