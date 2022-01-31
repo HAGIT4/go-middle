@@ -27,11 +27,6 @@ type metricServer struct {
 var _ MetricServerInterface = (*metricServer)(nil)
 
 func NewMetricServer(addr string, restoreConfig *models.RestoreConfig, hashKey string, databaseDSN string) (ms *metricServer, err error) {
-	sv, err := service.NewMetricService(restoreConfig, hashKey)
-	if err != nil {
-		return nil, err
-	}
-
 	var st storage.StorageInterface
 	if len(databaseDSN) == 0 {
 		st, err = storage.NewMemoryStorage()
@@ -48,6 +43,13 @@ func NewMetricServer(addr string, restoreConfig *models.RestoreConfig, hashKey s
 		}
 	}
 
+	svCfg := &service.MetricServiceConfig{
+		St:            st,
+		RestoreConfig: restoreConfig,
+		HashKey:       hashKey,
+	}
+
+	sv, err := service.NewMetricService(svCfg)
 	if err != nil {
 		return nil, err
 	}
@@ -67,12 +69,6 @@ func NewMetricServer(addr string, restoreConfig *models.RestoreConfig, hashKey s
 }
 
 func (s *metricServer) ListenAndServe() (err error) {
-	if s.restoreConfig != nil {
-		if err = s.sv.RestoreDataFromFile(); err != nil {
-			return err
-		}
-	}
-
 	go func() {
 		if err := s.handler.mux.Run(s.addr); err != nil {
 			log.Fatal(err)

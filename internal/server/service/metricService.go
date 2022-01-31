@@ -1,9 +1,17 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/HAGIT4/go-middle/internal/server/storage"
 	"github.com/HAGIT4/go-middle/pkg/models"
 )
+
+type MetricServiceConfig struct {
+	St            storage.StorageInterface
+	RestoreConfig *models.RestoreConfig
+	HashKey       string
+}
 
 type MetricService struct {
 	storage       storage.StorageInterface
@@ -13,25 +21,27 @@ type MetricService struct {
 
 var _ MetricServiceInterface = (*MetricService)(nil)
 
-func NewMetricService(restoreConfig *models.RestoreConfig, hashKey string) (serv *MetricService, err error) {
-	st, err := storage.NewMemoryStorage()
-	if err != nil {
-		return nil, err
-	}
-
-	if restoreConfig != nil {
-		if restoreConfig.StoreInterval == 0 {
-			restoreConfig.SyncWrite = true
+func NewMetricService(cfg *MetricServiceConfig) (sv *MetricService, err error) {
+	if cfg.RestoreConfig != nil {
+		if cfg.RestoreConfig.StoreInterval == 0 {
+			cfg.RestoreConfig.SyncWrite = true
 		} else {
-			restoreConfig.SyncWrite = false
+			cfg.RestoreConfig.SyncWrite = false
 		}
 	}
 
-	serv = &MetricService{
-		storage:       st,
-		restoreConfig: restoreConfig,
-		hashKey:       hashKey,
+	sv = &MetricService{
+		storage:       cfg.St,
+		restoreConfig: cfg.RestoreConfig,
+		hashKey:       cfg.HashKey,
 	}
 
-	return serv, nil
+	if sv.restoreConfig != nil {
+		fmt.Println(sv.restoreConfig)
+		if err := sv.RestoreDataFromFile(); err != nil {
+			return nil, err
+		}
+	}
+
+	return sv, nil
 }

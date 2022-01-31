@@ -4,26 +4,26 @@ import (
 	"github.com/HAGIT4/go-middle/pkg/models"
 )
 
-func (s *MetricService) updateGauge(metricName string, metricValue float64) (err error) {
-	if err = s.storage.UpdateGauge(metricName, metricValue); err != nil {
+func (sv *MetricService) updateGauge(metricName string, metricValue float64) (err error) {
+	if err = sv.storage.UpdateGauge(metricName, metricValue); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *MetricService) updateCounter(metricName string, metricValue int64) (err error) {
-	knownValue, err := s.getCounter(metricName)
+func (sv *MetricService) updateCounter(metricName string, metricValue int64) (err error) {
+	knownValue, err := sv.getCounter(metricName)
 	if err != nil {
 		knownValue = 0
 	}
 	newValue := knownValue + metricValue
-	if err = s.storage.UpdateCounter(metricName, newValue); err != nil {
+	if err = sv.storage.UpdateCounter(metricName, newValue); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *MetricService) UpdateMetric(metricInfo *models.Metrics) (err error) {
+func (sv *MetricService) UpdateMetric(metricInfo *models.Metrics) (err error) {
 	metricType := metricInfo.MType
 	metricName := metricInfo.ID
 	switch metricType {
@@ -32,7 +32,7 @@ func (s *MetricService) UpdateMetric(metricInfo *models.Metrics) (err error) {
 			return newServiceNoValueUpdateError(metricName)
 		}
 		metricValue := *metricInfo.Value
-		if err := s.updateGauge(metricName, metricValue); err != nil {
+		if err := sv.updateGauge(metricName, metricValue); err != nil {
 			return err
 		}
 	case "counter":
@@ -40,15 +40,15 @@ func (s *MetricService) UpdateMetric(metricInfo *models.Metrics) (err error) {
 			return newServiceNoDeltaUpdateError(metricName)
 		}
 		metricDelta := *metricInfo.Delta
-		if err := s.updateCounter(metricName, metricDelta); err != nil {
+		if err := sv.updateCounter(metricName, metricDelta); err != nil {
 			return err
 		}
 	default:
 		return newServiceMetricTypeUnknownError(metricType)
 	}
-	if s.restoreConfig != nil {
-		if s.restoreConfig.SyncWrite {
-			if err := s.WriteAllMetricsToFile(); err != nil {
+	if sv.restoreConfig != nil {
+		if sv.restoreConfig.SyncWrite {
+			if err := sv.WriteAllMetricsToFile(); err != nil {
 				return err
 			}
 		}
