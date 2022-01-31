@@ -14,12 +14,14 @@ type EnvConfig struct {
 	StoreFile     string        `env:"STORE_FILE"`
 	Restore       bool          `env:"RESTORE"`
 	HashKey       string        `env:"KEY"`
+	DatabaseDSN   string        `env:"DATABASE_DSN"`
 }
 
 type ServerConfig struct {
 	ServerAddr    string
 	RestoreConfig *models.RestoreConfig
 	HashKey       string
+	DatabaseDSN   string
 }
 
 var (
@@ -28,6 +30,7 @@ var (
 	storeIntervalFlag *time.Duration
 	storeFileFlag     *string
 	hashKeyFlag       *string
+	databaseDSNflag   *string
 )
 
 func InitConfig() (cfg *ServerConfig, err error) {
@@ -36,6 +39,7 @@ func InitConfig() (cfg *ServerConfig, err error) {
 	storeIntervalFlag = flag.Duration("i", 300*time.Second, "Backup to file interval")
 	storeFileFlag = flag.String("f", "/tmp/devops-metrics-db.json", "File to backup")
 	hashKeyFlag = flag.String("k", "", "Key for hashing")
+	databaseDSNflag = flag.String("d", "", "Database DSN")
 	flag.Parse()
 
 	envCfg := &EnvConfig{}
@@ -61,10 +65,18 @@ func InitConfig() (cfg *ServerConfig, err error) {
 		cfg.RestoreConfig.StoreInterval = envCfg.StoreInterval
 	}
 
-	if len(envCfg.StoreFile) == 0 {
-		cfg.RestoreConfig.StoreFile = *storeFileFlag
+	if len(envCfg.DatabaseDSN) == 0 {
+		cfg.DatabaseDSN = *databaseDSNflag
 	} else {
-		cfg.RestoreConfig.StoreFile = envCfg.StoreFile
+		cfg.DatabaseDSN = envCfg.DatabaseDSN
+	}
+
+	if len(cfg.DatabaseDSN) == 0 {
+		if len(envCfg.StoreFile) == 0 {
+			cfg.RestoreConfig.StoreFile = *storeFileFlag
+		} else {
+			cfg.RestoreConfig.StoreFile = envCfg.StoreFile
+		}
 	}
 
 	if len(envCfg.HashKey) == 0 {

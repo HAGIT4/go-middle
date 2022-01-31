@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"github.com/HAGIT4/go-middle/internal/server/service"
+	"github.com/HAGIT4/go-middle/internal/server/storage/postgresStorage"
 	"github.com/HAGIT4/go-middle/pkg/models"
 )
 
@@ -23,13 +24,21 @@ type metricServer struct {
 
 var _ MetricServerInterface = (*metricServer)(nil)
 
-func NewMetricServer(addr string, restoreConfig *models.RestoreConfig, hashKey string) (ms *metricServer, err error) {
+func NewMetricServer(addr string, restoreConfig *models.RestoreConfig, hashKey string, databaseDSN string) (ms *metricServer, err error) {
 	sv, err := service.NewMetricService(restoreConfig, hashKey)
 	if err != nil {
 		return nil, err
 	}
 
-	httpMux, err := newMetricRouter(sv)
+	postgresCfg := &postgresStorage.PostgresStorageConfig{
+		ConnectionString: databaseDSN,
+	}
+	st, err := postgresStorage.NewPostgresStorage(postgresCfg)
+	if err != nil {
+		return nil, err
+	}
+
+	httpMux, err := newMetricRouter(sv, st)
 	if err != nil {
 		return nil, err
 	}

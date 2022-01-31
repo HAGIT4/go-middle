@@ -26,3 +26,4 @@ vendor/
 
 # backup data
 .tmpstorage.json
+USvideos.csv
