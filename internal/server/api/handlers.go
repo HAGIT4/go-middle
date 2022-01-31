@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/HAGIT4/go-middle/internal/server/service"
-	"github.com/HAGIT4/go-middle/internal/server/storage/postgresStorage"
+	"github.com/HAGIT4/go-middle/internal/server/storage"
 	"github.com/HAGIT4/go-middle/pkg/models"
 	"github.com/gin-gonic/gin"
 )
@@ -137,14 +137,13 @@ func updateHandler(s service.MetricServiceInterface) (h gin.HandlerFunc) {
 	return
 }
 
-func databasePingHandler(st *postgresStorage.PostgresStorage) (h gin.HandlerFunc) {
+func databasePingHandler(st storage.StorageInterface) (h gin.HandlerFunc) {
 	h = func(c *gin.Context) {
 		if err := st.Ping(); err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
 		c.Status(http.StatusOK)
-		return
 	}
 	return
 }

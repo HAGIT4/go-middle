@@ -2,6 +2,7 @@ package api
 
 import (
 	"flag"
+	"fmt"
 	"time"
 
 	"github.com/HAGIT4/go-middle/pkg/models"
@@ -57,14 +58,6 @@ func InitConfig() (cfg *ServerConfig, err error) {
 		cfg.ServerAddr = envCfg.ServerAddr
 	}
 
-	cfg.RestoreConfig.Restore = envCfg.Restore || *restoreFlag
-
-	if envCfg.StoreInterval == 0 {
-		cfg.RestoreConfig.StoreInterval = *storeIntervalFlag
-	} else {
-		cfg.RestoreConfig.StoreInterval = envCfg.StoreInterval
-	}
-
 	if len(envCfg.DatabaseDSN) == 0 {
 		cfg.DatabaseDSN = *databaseDSNflag
 	} else {
@@ -77,6 +70,13 @@ func InitConfig() (cfg *ServerConfig, err error) {
 		} else {
 			cfg.RestoreConfig.StoreFile = envCfg.StoreFile
 		}
+		cfg.RestoreConfig.Restore = envCfg.Restore || *restoreFlag
+
+		if envCfg.StoreInterval == 0 {
+			cfg.RestoreConfig.StoreInterval = *storeIntervalFlag
+		} else {
+			cfg.RestoreConfig.StoreInterval = envCfg.StoreInterval
+		}
 	}
 
 	if len(envCfg.HashKey) == 0 {
@@ -85,6 +85,7 @@ func InitConfig() (cfg *ServerConfig, err error) {
 		cfg.HashKey = envCfg.HashKey
 	}
 
+	fmt.Println(cfg.DatabaseDSN)
 	return cfg, nil
 
 }

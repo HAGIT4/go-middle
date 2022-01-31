@@ -6,6 +6,8 @@ type StorageInterface interface {
 	GetCounter(metricName string) (metricValue int64, err error)
 	GetCounterAll() (metricNameToValue map[string]int64, err error)
 
-	UpdateGauge(metricName string, metricValue float64) error
-	UpdateCounter(metricName string, metricValue int64) error
+	UpdateGauge(metricName string, metricValue float64) (err error)
+	UpdateCounter(metricName string, metricValue int64) (err error)
+
+	Ping() (err error)
 }

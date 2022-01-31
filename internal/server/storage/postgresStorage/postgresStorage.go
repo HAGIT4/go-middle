@@ -13,6 +13,8 @@ type PostgresStorage struct {
 	connection *pgx.Conn
 }
 
+var _ PostgresStorageInterface = (*PostgresStorage)(nil)
+
 func NewPostgresStorage(cfg *PostgresStorageConfig) (st *PostgresStorage, err error) {
 	ctx := context.Background()
 	conn, err := pgx.Connect(ctx, cfg.ConnectionString)
@@ -25,12 +27,4 @@ func NewPostgresStorage(cfg *PostgresStorageConfig) (st *PostgresStorage, err er
 		connection:       conn,
 	}
 	return st, nil
-}
-
-func (st *PostgresStorage) Ping() (err error) {
-	err = st.connection.Ping(st.ctx)
-	if err != nil {
-		return newUnableToPingDatabaseError(st.connectionString)
-	}
-	return nil
 }

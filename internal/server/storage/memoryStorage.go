@@ -52,3 +52,7 @@ func (st *MemoryStorage) GetCounter(metricName string) (metricValue int64, err e
 func (st *MemoryStorage) GetCounterAll() (metricNameToValue map[string]int64, err error) {
 	return st.storageCounter, nil
 }
+
+func (st *MemoryStorage) Ping() (err error) {
+	return nil
+}

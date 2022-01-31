@@ -3,17 +3,17 @@ package api
 import (
 	"github.com/HAGIT4/go-middle/internal/server/api/middleware"
 	"github.com/HAGIT4/go-middle/internal/server/service"
-	"github.com/HAGIT4/go-middle/internal/server/storage/postgresStorage"
+	"github.com/HAGIT4/go-middle/internal/server/storage"
 	"github.com/gin-gonic/gin"
 )
 
 type metricRouter struct {
 	mux     *gin.Engine
 	service service.MetricServiceInterface
-	storage *postgresStorage.PostgresStorage
+	storage storage.StorageInterface
 }
 
-func newMetricRouter(sv service.MetricServiceInterface, st *postgresStorage.PostgresStorage) (r *metricRouter, err error) {
+func newMetricRouter(sv service.MetricServiceInterface, st storage.StorageInterface) (r *metricRouter, err error) {
 	mux := gin.Default()
 	mux.Use(middleware.GzipReadMiddleware())
 	mux.Use(middleware.GzipWriteMiddleware())
@@ -31,7 +31,7 @@ func newMetricRouter(sv service.MetricServiceInterface, st *postgresStorage.Post
 		getHandler(sv, getResponseFormatJSON))
 	mux.GET("/", getAllDataHTMLhandler(sv))
 
-	//database
+	// database
 	mux.GET("/ping", databasePingHandler(st))
 
 	r = &metricRouter{

@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"github.com/HAGIT4/go-middle/internal/server/service"
+	"github.com/HAGIT4/go-middle/internal/server/storage"
 	"github.com/HAGIT4/go-middle/internal/server/storage/postgresStorage"
 	"github.com/HAGIT4/go-middle/pkg/models"
 )
@@ -30,10 +31,22 @@ func NewMetricServer(addr string, restoreConfig *models.RestoreConfig, hashKey s
 		return nil, err
 	}
 
-	postgresCfg := &postgresStorage.PostgresStorageConfig{
-		ConnectionString: databaseDSN,
+	var st storage.StorageInterface
+	if len(databaseDSN) == 0 {
+		st, err = storage.NewMemoryStorage()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		postgresCfg := &postgresStorage.PostgresStorageConfig{
+			ConnectionString: databaseDSN,
+		}
+		st, err = postgresStorage.NewPostgresStorage(postgresCfg)
+		if err != nil {
+			return nil, err
+		}
 	}
-	st, err := postgresStorage.NewPostgresStorage(postgresCfg)
+
 	if err != nil {
 		return nil, err
 	}
