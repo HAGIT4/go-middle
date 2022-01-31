@@ -18,9 +18,10 @@ const (
 )
 
 type metricServer struct {
-	addr    string
-	handler *metricRouter
-	sv      service.MetricServiceInterface
+	addr          string
+	handler       *metricRouter
+	sv            service.MetricServiceInterface
+	restoteConfig *models.RestoreConfig
 }
 
 var _ MetricServerInterface = (*metricServer)(nil)
@@ -57,24 +58,28 @@ func NewMetricServer(addr string, restoreConfig *models.RestoreConfig, hashKey s
 	}
 
 	ms = &metricServer{
-		addr:    addr,
-		handler: httpMux,
-		sv:      sv,
+		addr:          addr,
+		handler:       httpMux,
+		sv:            sv,
+		restoteConfig: restoreConfig,
 	}
 	return ms, nil
 }
 
 func (s *metricServer) ListenAndServe() (err error) {
-	if err = s.sv.RestoreDataFromFile(); err != nil {
-		return err
+	if s.restoteConfig != nil {
+		if err = s.sv.RestoreDataFromFile(); err != nil {
+			return err
+		}
+		go func() {
+			if err := s.sv.SaveDataWithInterval(); err != nil {
+				log.Fatal(err)
+			}
+		}()
 	}
+
 	go func() {
 		if err := s.handler.mux.Run(s.addr); err != nil {
-			log.Fatal(err)
-		}
-	}()
-	go func() {
-		if err := s.sv.SaveDataWithInterval(); err != nil {
 			log.Fatal(err)
 		}
 	}()
