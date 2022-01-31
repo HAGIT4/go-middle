@@ -1,4 +1,4 @@
-package postgresStorage
+package postgresstorage
 
 func (st *PostgresStorage) Ping() (err error) {
 	err = st.connection.Ping(st.ctx)

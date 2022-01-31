@@ -2,7 +2,6 @@ package api
 
 import (
 	"flag"
-	"fmt"
 	"time"
 
 	"github.com/HAGIT4/go-middle/pkg/models"
@@ -85,7 +84,6 @@ func InitConfig() (cfg *ServerConfig, err error) {
 		cfg.HashKey = envCfg.HashKey
 	}
 
-	fmt.Println(cfg.DatabaseDSN)
 	return cfg, nil
 
 }

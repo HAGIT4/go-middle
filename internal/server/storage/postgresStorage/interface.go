@@ -1,4 +1,4 @@
-package postgresStorage
+package postgresstorage
 
 import "github.com/HAGIT4/go-middle/internal/server/storage"
 

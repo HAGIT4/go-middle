@@ -1,4 +1,4 @@
-package postgresStorage
+package postgresstorage
 
 func (st *PostgresStorage) GetGauge(metricName string) (metricValue float64, err error) {
 	return 0, nil

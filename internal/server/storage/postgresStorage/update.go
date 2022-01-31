@@ -1,4 +1,4 @@
-package postgresStorage
+package postgresstorage
 
 func (st *PostgresStorage) UpdateGauge(metricName string, metricValue float64) error {
 	return nil
