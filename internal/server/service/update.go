@@ -46,13 +46,12 @@ func (sv *MetricService) UpdateMetric(metricInfo *models.Metrics) (err error) {
 	default:
 		return newServiceMetricTypeUnknownError(metricType)
 	}
-	if sv.restoreConfig != nil {
-		if sv.restoreConfig.SyncWrite {
-			if err := sv.WriteAllMetricsToFile(); err != nil {
-				return err
-			}
-		}
-	}
-
+	// if sv.restoreConfig != nil {
+	// 	if sv.restoreConfig.SyncWrite {
+	// 		if err := sv.WriteAllMetricsToFile(); err != nil {
+	// 			return err
+	// 		}
+	// 	}
+	// }
 	return nil
 }
