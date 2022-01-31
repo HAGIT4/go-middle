@@ -21,7 +21,7 @@ type metricServer struct {
 	addr          string
 	handler       *metricRouter
 	sv            service.MetricServiceInterface
-	restoteConfig *models.RestoreConfig
+	restoreConfig *models.RestoreConfig
 }
 
 var _ MetricServerInterface = (*metricServer)(nil)
@@ -61,21 +61,16 @@ func NewMetricServer(addr string, restoreConfig *models.RestoreConfig, hashKey s
 		addr:          addr,
 		handler:       httpMux,
 		sv:            sv,
-		restoteConfig: restoreConfig,
+		restoreConfig: restoreConfig,
 	}
 	return ms, nil
 }
 
 func (s *metricServer) ListenAndServe() (err error) {
-	if s.restoteConfig != nil {
+	if s.restoreConfig != nil {
 		if err = s.sv.RestoreDataFromFile(); err != nil {
 			return err
 		}
-		go func() {
-			if err := s.sv.SaveDataWithInterval(); err != nil {
-				log.Fatal(err)
-			}
-		}()
 	}
 
 	go func() {
@@ -83,6 +78,14 @@ func (s *metricServer) ListenAndServe() (err error) {
 			log.Fatal(err)
 		}
 	}()
+
+	if s.restoreConfig != nil {
+		go func() {
+			if err := s.sv.SaveDataWithInterval(); err != nil {
+				log.Fatal(err)
+			}
+		}()
+	}
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
