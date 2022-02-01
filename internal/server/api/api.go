@@ -45,7 +45,7 @@ func NewMetricServer(addr string, restoreConfig *models.RestoreConfig, hashKey s
 	}
 
 	svCfg := &service.MetricServiceConfig{
-		St:            st,
+		Storage:       st,
 		RestoreConfig: restoreConfig,
 		HashKey:       hashKey,
 	}

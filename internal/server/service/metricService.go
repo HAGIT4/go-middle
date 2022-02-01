@@ -8,7 +8,7 @@ import (
 )
 
 type MetricServiceConfig struct {
-	St            storage.StorageInterface
+	Storage       storage.StorageInterface
 	RestoreConfig *models.RestoreConfig
 	HashKey       string
 }
@@ -31,7 +31,7 @@ func NewMetricService(cfg *MetricServiceConfig) (sv *MetricService, err error) {
 	}
 
 	sv = &MetricService{
-		storage:       cfg.St,
+		storage:       cfg.Storage,
 		restoreConfig: cfg.RestoreConfig,
 		hashKey:       cfg.HashKey,
 	}
