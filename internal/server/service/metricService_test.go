@@ -37,7 +37,10 @@ func TestUpdateGauge(t *testing.T) {
 		StoreFile:     "",
 		Restore:       false,
 	}
-	ms, err := service.NewMetricService(restoreConfig, "")
+	svCfg := &service.MetricServiceConfig{
+		RestoreConfig: restoreConfig,
+	}
+	ms, err := service.NewMetricService(svCfg)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -80,7 +83,10 @@ func TestUpdateCounter(t *testing.T) {
 		StoreFile:     "",
 		Restore:       false,
 	}
-	ms, _ := service.NewMetricService(restoreConfig, "")
+	svCfg := &service.MetricServiceConfig{
+		RestoreConfig: restoreConfig,
+	}
+	ms, _ := service.NewMetricService(svCfg)
 	metricName := "new counter"
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
