@@ -1,4 +1,4 @@
-package storage
+package memorystorage
 
 type MemoryStorage struct {
 	storageGauge   map[string]float64

@@ -8,6 +8,7 @@ import (
 
 	"github.com/HAGIT4/go-middle/internal/server/service"
 	"github.com/HAGIT4/go-middle/internal/server/storage"
+	"github.com/HAGIT4/go-middle/internal/server/storage/memorystorage"
 	"github.com/HAGIT4/go-middle/internal/server/storage/postgresstorage"
 	"github.com/HAGIT4/go-middle/pkg/models"
 )
@@ -29,7 +30,7 @@ var _ MetricServerInterface = (*metricServer)(nil)
 func NewMetricServer(addr string, restoreConfig *models.RestoreConfig, hashKey string, databaseDSN string) (ms *metricServer, err error) {
 	var st storage.StorageInterface
 	if len(databaseDSN) == 0 {
-		st, err = storage.NewMemoryStorage()
+		st, err = memorystorage.NewMemoryStorage()
 		if err != nil {
 			return nil, err
 		}
