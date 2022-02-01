@@ -4,23 +4,23 @@ import (
 	"github.com/HAGIT4/go-middle/pkg/models"
 )
 
-func (s *MetricService) getGauge(metricName string) (metricValue float64, err error) {
-	metricValue, err = s.storage.GetGauge(metricName)
+func (sv *MetricService) getGauge(metricName string) (metricValue float64, err error) {
+	metricValue, err = sv.storage.GetGauge(metricName)
 	if err != nil {
 		return 0, err
 	}
 	return metricValue, nil
 }
 
-func (s *MetricService) getCounter(metricName string) (metricValue int64, err error) {
-	metricValue, err = s.storage.GetCounter(metricName)
+func (sv *MetricService) getCounter(metricName string) (metricValue int64, err error) {
+	metricValue, err = sv.storage.GetCounter(metricName)
 	if err != nil {
 		return 0, err
 	}
 	return metricValue, nil
 }
 
-func (s *MetricService) GetMetric(metricInfoReq *models.Metrics) (metricInfoResp *models.Metrics, err error) {
+func (sv *MetricService) GetMetric(metricInfoReq *models.Metrics) (metricInfoResp *models.Metrics, err error) {
 	metricType := metricInfoReq.MType
 	metricName := metricInfoReq.ID
 	metricInfoResp = &models.Metrics{
@@ -29,13 +29,13 @@ func (s *MetricService) GetMetric(metricInfoReq *models.Metrics) (metricInfoResp
 	}
 	switch metricType {
 	case "gauge":
-		metricValue, err := s.getGauge(metricName)
+		metricValue, err := sv.getGauge(metricName)
 		if err != nil {
 			return nil, err
 		}
 		metricInfoResp.Value = &metricValue
 	case "counter":
-		metricDelta, err := s.getCounter(metricName)
+		metricDelta, err := sv.getCounter(metricName)
 		if err != nil {
 			return nil, err
 		}
@@ -44,8 +44,8 @@ func (s *MetricService) GetMetric(metricInfoReq *models.Metrics) (metricInfoResp
 		return nil, newServiceMetricTypeUnknownError(metricType)
 	}
 
-	if len(s.hashKey) > 0 {
-		s.ComputeHash(metricInfoResp)
+	if len(sv.hashKey) > 0 {
+		sv.ComputeHash(metricInfoResp)
 	}
 
 	return metricInfoResp, nil

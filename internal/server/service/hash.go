@@ -9,17 +9,17 @@ import (
 	"github.com/HAGIT4/go-middle/pkg/models"
 )
 
-func (s *MetricService) GetHashKey() string {
-	return s.hashKey
+func (sv *MetricService) GetHashKey() string {
+	return sv.hashKey
 }
 
-func (s *MetricService) CheckHash(metric *models.Metrics) (err error) {
+func (sv *MetricService) CheckHash(metric *models.Metrics) (err error) {
 	reqHash, err := hex.DecodeString(metric.Hash)
 	if err != nil {
 		return err
 	}
 	var localHash []byte
-	h := hmac.New(sha256.New, []byte(s.hashKey))
+	h := hmac.New(sha256.New, []byte(sv.hashKey))
 	switch metric.MType {
 	case "gauge":
 		h.Write([]byte(fmt.Sprintf("%s:gauge:%f", metric.ID, *metric.Value)))
@@ -36,8 +36,8 @@ func (s *MetricService) CheckHash(metric *models.Metrics) (err error) {
 	return nil
 }
 
-func (s *MetricService) ComputeHash(metric *models.Metrics) (err error) {
-	h := hmac.New(sha256.New, []byte(s.hashKey))
+func (sv *MetricService) ComputeHash(metric *models.Metrics) (err error) {
+	h := hmac.New(sha256.New, []byte(sv.hashKey))
 	switch metric.MType {
 	case "gauge":
 		h.Write([]byte(fmt.Sprintf("%s:gauge:%f", metric.ID, *metric.Value)))
