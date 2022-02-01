@@ -51,20 +51,20 @@ func (sv *MetricService) GetMetric(metricInfoReq *models.Metrics) (metricInfoRes
 	return metricInfoResp, nil
 }
 
-func (s *MetricService) GetMetricAll() (gaugeNameToValue map[string]float64, counterNameToValue map[string]int64, err error) {
-	gaugeNameToValue, err = s.storage.GetGaugeAll()
+func (sv *MetricService) GetMetricAll() (gaugeNameToValue map[string]float64, counterNameToValue map[string]int64, err error) {
+	gaugeNameToValue, err = sv.storage.GetGaugeAll()
 	if err != nil {
 		return nil, nil, err
 	}
-	counterNameToValue, err = s.storage.GetCounterAll()
+	counterNameToValue, err = sv.storage.GetCounterAll()
 	if err != nil {
 		return nil, nil, err
 	}
 	return gaugeNameToValue, counterNameToValue, nil
 }
 
-func (s *MetricService) GetMetricModelsAll() (allMetrics []models.Metrics, err error) {
-	gaugeNameToValue, counterNameToValue, err := s.GetMetricAll()
+func (sv *MetricService) GetMetricModelsAll() (allMetrics []models.Metrics, err error) {
+	gaugeNameToValue, counterNameToValue, err := sv.GetMetricAll()
 	if err != nil {
 		return nil, err
 	}
