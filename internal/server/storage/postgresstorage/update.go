@@ -17,7 +17,7 @@ func (st *PostgresStorage) UpdateGauge(metricName string, metricValue float64) (
 func (st *PostgresStorage) UpdateCounter(metricName string, metricValue int64) (err error) {
 	ctx, cancel := context.WithCancel(st.ctx)
 	defer cancel()
-	_, err = st.connection.Exec(ctx, "INSERT INTO counter (id, value) VALUES ($1, $2)",
+	_, err = st.connection.Exec(ctx, "INSERT INTO counter (id, delta) VALUES ($1, $2)",
 		metricName, metricValue,
 	)
 	if err != nil {
