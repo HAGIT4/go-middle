@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUpdateGauge(t *testing.T) {
+func TestServiceUpdateGauge(t *testing.T) {
 	tests := []struct {
 		name  string
 		value float64
