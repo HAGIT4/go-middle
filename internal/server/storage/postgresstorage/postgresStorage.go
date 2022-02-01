@@ -17,10 +17,23 @@ var _ PostgresStorageInterface = (*PostgresStorage)(nil)
 
 func NewPostgresStorage(cfg *PostgresStorageConfig) (st *PostgresStorage, err error) {
 	ctx := context.Background()
-	conn, err := pgx.Connect(ctx, cfg.ConnectionString)
+	ctxT, cancel := context.WithCancel(ctx)
+	defer cancel()
+	conn, err := pgx.Connect(ctxT, cfg.ConnectionString)
 	if err != nil {
 		return nil, newUnableToConnectToDatabaseError(cfg.ConnectionString)
 	}
+
+	_, err = conn.Exec(ctxT, "CREATE TABLE IF NOT EXISTS gauge (id TEXT, value double precision)")
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = conn.Exec(ctxT, "CREATE TABLE IF NOT EXISTS counter (id TEXT, delta bigint)")
+	if err != nil {
+		return nil, err
+	}
+
 	st = &PostgresStorage{
 		connectionString: cfg.ConnectionString,
 		ctx:              ctx,
