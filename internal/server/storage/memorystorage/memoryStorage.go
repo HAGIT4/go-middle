@@ -9,7 +9,7 @@ type MemoryStorage struct {
 	storageCounter map[string]int64
 }
 
-var _ StorageInterface = (*MemoryStorage)(nil)
+// var _ StorageInterface = (*MemoryStorage)(nil)
 
 func NewMemoryStorage() (ms *MemoryStorage, err error) {
 	stGauge := make(map[string]float64)

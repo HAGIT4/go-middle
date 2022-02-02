@@ -65,11 +65,11 @@ func (st *PostgresStorage) UpdateBatch(req *dbModels.BatchUpdateRequest) (err er
 		return err
 	}
 	defer tx.Rollback(ctx)
-	_, err = tx.Prepare(ctx, "updateGauge", "INSERT INTO gauge(id, $1) VALUES($2, $3)")
+	_, err = tx.Prepare(ctx, "updateGauge", "INSERT INTO gauge(id, gauge) VALUES($1, $2)")
 	if err != nil {
 		return err
 	}
-	_, err = tx.Prepare(ctx, "updateCounter", "INSERT INTO counter(id, $1) VALUES($2, $3)")
+	_, err = tx.Prepare(ctx, "updateCounter", "INSERT INTO counter(id, delta) VALUES($1, $2)")
 	if err != nil {
 		return err
 	}
@@ -77,12 +77,12 @@ func (st *PostgresStorage) UpdateBatch(req *dbModels.BatchUpdateRequest) (err er
 	for _, metric := range *metrics {
 		switch metric.MetricType {
 		case dbModels.TypeGauge:
-			_, err = tx.Exec(ctx, "updateGauge", "value", metric.MetricID, metric.GaugeValue)
+			_, err = tx.Exec(ctx, "updateGauge", metric.MetricID, metric.GaugeValue)
 			if err != nil {
 				return err
 			}
 		case dbModels.TypeCounter:
-			_, err = tx.Exec(ctx, "updateCounter", "delta", metric.MetricID, metric.CounterDelta)
+			_, err = tx.Exec(ctx, "updateCounter", metric.MetricID, metric.CounterDelta)
 			if err != nil {
 				return err
 			}
