@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/HAGIT4/go-middle/pkg/models"
+	dbModels "github.com/HAGIT4/go-middle/pkg/server/storage/models"
 )
 
 func (sv *MetricService) updateGauge(metricName string, metricValue float64) (err error) {
@@ -46,12 +47,46 @@ func (sv *MetricService) UpdateMetric(metricInfo *models.Metrics) (err error) {
 	default:
 		return newServiceMetricTypeUnknownError(metricType)
 	}
-	// if sv.restoreConfig != nil {
-	// 	if sv.restoreConfig.SyncWrite {
-	// 		if err := sv.WriteAllMetricsToFile(); err != nil {
-	// 			return err
-	// 		}
-	// 	}
-	// }
+	if sv.restoreConfig != nil {
+		if sv.restoreConfig.SyncWrite {
+			if err := sv.WriteAllMetricsToFile(); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (sv *MetricService) UpdateBatch(metricsSlice *[]models.Metrics) (err error) {
+	var dbReqSlice []dbModels.UpdateRequest
+	for _, metric := range *metricsSlice {
+		metricId := metric.ID
+		var metricType int
+		var gaugeValue float64
+		var counterDelta int64
+		switch metric.MType {
+		case "gauge":
+			metricType = dbModels.TypeGauge
+			gaugeValue = *metric.Value
+		case "counter":
+			metricType = dbModels.TypeCounter
+			counterDelta = *metric.Delta
+		default:
+			return newServiceMetricTypeUnknownError(metric.MType)
+		}
+		dbReq := dbModels.UpdateRequest{
+			MetricType:   metricType,
+			MetricID:     metricId,
+			GaugeValue:   gaugeValue,
+			CounterDelta: counterDelta,
+		}
+		dbReqSlice = append(dbReqSlice, dbReq)
+	}
+	dbBatchReq := dbModels.BatchUpdateRequest{
+		Metrics: &dbReqSlice,
+	}
+	if err := sv.storage.UpdateBatch(&dbBatchReq); err != nil {
+		return err
+	}
 	return nil
 }

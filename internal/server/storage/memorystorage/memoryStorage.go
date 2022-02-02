@@ -1,5 +1,9 @@
 package memorystorage
 
+import (
+	dbModels "github.com/HAGIT4/go-middle/pkg/server/storage/models"
+)
+
 type MemoryStorage struct {
 	storageGauge   map[string]float64
 	storageCounter map[string]int64
@@ -55,4 +59,8 @@ func (st *MemoryStorage) GetCounterAll() (metricNameToValue map[string]int64, er
 
 func (st *MemoryStorage) Ping() (err error) {
 	return nil
+}
+
+func (st *MemoryStorage) UpdateBatch(req *dbModels.BatchUpdateRequest) (err error) {
+	return nil // TODO
 }

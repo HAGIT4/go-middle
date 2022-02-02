@@ -8,9 +8,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CheckHashSHA256Middleware(s service.MetricServiceInterface) (h gin.HandlerFunc) {
+func CheckHashSHA256Middleware(sv service.MetricServiceInterface) (h gin.HandlerFunc) {
 	h = func(c *gin.Context) {
-		if len(s.GetHashKey()) == 0 {
+		if len(sv.GetHashKey()) == 0 {
 			return
 		}
 		var reqMetric interface{}
@@ -19,8 +19,32 @@ func CheckHashSHA256Middleware(s service.MetricServiceInterface) (h gin.HandlerF
 			c.AbortWithStatus(http.StatusInternalServerError)
 		}
 		reqMetricModel := reqMetric.(*models.Metrics)
-		if err := s.CheckHash(reqMetricModel); err != nil {
+		if err := sv.CheckHash(reqMetricModel); err != nil {
 			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+	}
+	return
+}
+
+func CheckBatchHashSHA256Middleware(sv service.MetricServiceInterface) (h gin.HandlerFunc) {
+	h = func(c *gin.Context) {
+		if len(sv.GetHashKey()) == 0 {
+			return
+		}
+		var reqMetricSliceGet interface{}
+		var reqMetricSlice *[]models.Metrics
+		var found bool
+		if reqMetricSliceGet, found = c.Get("requestSlice"); !found {
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		reqMetricSlice = reqMetricSliceGet.(*[]models.Metrics)
+		for _, metric := range *reqMetricSlice {
+			if err := sv.CheckHash(&metric); err != nil {
+				c.AbortWithError(http.StatusBadRequest, err)
+				return
+			}
 		}
 	}
 	return

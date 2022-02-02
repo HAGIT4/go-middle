@@ -24,6 +24,7 @@ func newMetricRouter(sv service.MetricServiceInterface, st storage.StorageInterf
 		updateHandler(sv))
 	mux.POST("/update/:metricType/:metricName/:metricValue", parsePlainTextRequest(plainTextParseMethodPost),
 		middleware.CheckHashSHA256Middleware(sv), updateHandler(sv))
+	mux.POST("/updates/", parseBatchJSONrequest(), middleware.CheckBatchHashSHA256Middleware(sv), updateBatchHandler(sv))
 
 	mux.GET("/value/:metricType/:metricName", parsePlainTextRequest(plainTextParseMethodGet),
 		getHandler(sv, getResponseFormatPlain))
