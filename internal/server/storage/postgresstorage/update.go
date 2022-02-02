@@ -30,6 +30,31 @@ func (st *PostgresStorage) UpdateCounter(metricName string, metricValue int64) (
 	return nil
 }
 
+func (st *PostgresStorage) UpdateMetric(req *dbModels.UpdateRequest) (err error) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	switch req.MetricType {
+	case dbModels.TypeGauge:
+		_, err = st.connection.Exec(ctx, "INSERT INTO gauge(id, value) VALUES($1, $2)",
+			req.MetricID, req.GaugeValue,
+		)
+		if err != nil {
+			return err
+		}
+	case dbModels.TypeCounter:
+		_, err = st.connection.Exec(ctx, "INSERT INTO counter(id, delta) VALUES($1, $2)",
+			req.MetricID, req.CounterDelta,
+		)
+		if err != nil {
+			return err
+		}
+	default:
+		return newUnknownTypeError()
+	}
+	return nil
+}
+
 func (st *PostgresStorage) UpdateBatch(req *dbModels.BatchUpdateRequest) (err error) {
 	metrics := req.Metrics
 	ctx, cancel := context.WithCancel(st.ctx)
@@ -40,7 +65,11 @@ func (st *PostgresStorage) UpdateBatch(req *dbModels.BatchUpdateRequest) (err er
 		return err
 	}
 	defer tx.Rollback(ctx)
-	_, err = tx.Prepare(ctx, "update", "INSERT INTO $1(id, $2) VALUES($3, $4)")
+	_, err = tx.Prepare(ctx, "updateGauge", "INSERT INTO gauge(id, $1) VALUES($2, $3)")
+	if err != nil {
+		return err
+	}
+	_, err = tx.Prepare(ctx, "updateCounter", "INSERT INTO counter(id, $1) VALUES($2, $3)")
 	if err != nil {
 		return err
 	}
@@ -48,12 +77,12 @@ func (st *PostgresStorage) UpdateBatch(req *dbModels.BatchUpdateRequest) (err er
 	for _, metric := range *metrics {
 		switch metric.MetricType {
 		case dbModels.TypeGauge:
-			_, err = tx.Exec(ctx, "update", "gauge", "value", metric.MetricID, metric.GaugeValue)
+			_, err = tx.Exec(ctx, "updateGauge", "value", metric.MetricID, metric.GaugeValue)
 			if err != nil {
 				return err
 			}
 		case dbModels.TypeCounter:
-			_, err = tx.Exec(ctx, "update", "counter", "delta", metric.MetricID, metric.CounterDelta)
+			_, err = tx.Exec(ctx, "updateCounter", "delta", metric.MetricID, metric.CounterDelta)
 			if err != nil {
 				return err
 			}

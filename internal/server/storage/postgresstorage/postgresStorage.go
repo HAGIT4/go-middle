@@ -13,7 +13,7 @@ type PostgresStorage struct {
 	connection *pgx.Conn
 }
 
-var _ PostgresStorageInterface = (*PostgresStorage)(nil)
+// var _ PostgresStorageInterface = (*PostgresStorage)(nil)
 
 func NewPostgresStorage(cfg *PostgresStorageConfig) (st *PostgresStorage, err error) {
 	ctx := context.Background()

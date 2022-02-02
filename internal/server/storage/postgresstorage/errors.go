@@ -31,3 +31,14 @@ func (e *unableToPingDatabaseError) Error() string {
 	err := fmt.Sprintf("Unable to ping database: %s", e.connectionString)
 	return err
 }
+
+type unknownTypeError struct{}
+
+func newUnknownTypeError() (err *unknownTypeError) {
+	return &unknownTypeError{}
+}
+
+func (e *unknownTypeError) Error() string {
+	err := "Unknown type"
+	return err
+}
