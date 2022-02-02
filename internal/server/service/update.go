@@ -60,7 +60,7 @@ func (sv *MetricService) UpdateMetric(metricInfo *models.Metrics) (err error) {
 func (sv *MetricService) UpdateBatch(metricsSlice *[]models.Metrics) (err error) {
 	var dbReqSlice []dbModels.UpdateRequest
 	for _, metric := range *metricsSlice {
-		metricId := metric.ID
+		metricID := metric.ID
 		var metricType int
 		var gaugeValue float64
 		var counterDelta int64
@@ -76,7 +76,7 @@ func (sv *MetricService) UpdateBatch(metricsSlice *[]models.Metrics) (err error)
 		}
 		dbReq := dbModels.UpdateRequest{
 			MetricType:   metricType,
-			MetricID:     metricId,
+			MetricID:     metricID,
 			GaugeValue:   gaugeValue,
 			CounterDelta: counterDelta,
 		}
