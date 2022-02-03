@@ -63,3 +63,14 @@ func (e *hashNotMatchingError) Error() string {
 	err := fmt.Sprintf("Request hash does not match with computed:\nRequest hash: %s\nComputed hash: %s", e.requestHash, e.localHash)
 	return err
 }
+
+type hashComputeError struct{}
+
+func newHashComputeError() (err *hashComputeError) {
+	return &hashComputeError{}
+}
+
+func (e *hashComputeError) Error() (msg string) {
+	msg = "Error when computing hash"
+	return msg
+}

@@ -22,9 +22,15 @@ func (sv *MetricService) CheckHash(metric *models.Metrics) (err error) {
 	h := hmac.New(sha256.New, []byte(sv.hashKey))
 	switch metric.MType {
 	case "gauge":
+		if len(metric.ID) == 0 || metric.Value == nil {
+			return newHashComputeError()
+		}
 		h.Write([]byte(fmt.Sprintf("%s:gauge:%f", metric.ID, *metric.Value)))
 		localHash = h.Sum(nil)
 	case "counter":
+		if len(metric.ID) == 0 || metric.Delta == nil {
+			return newHashComputeError()
+		}
 		h.Write([]byte(fmt.Sprintf("%s:counter:%d", metric.ID, *metric.Delta)))
 		localHash = h.Sum(nil)
 	default:

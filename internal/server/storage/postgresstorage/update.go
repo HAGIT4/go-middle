@@ -65,6 +65,7 @@ func (st *PostgresStorage) UpdateBatch(req *dbModels.BatchUpdateRequest) (err er
 		return err
 	}
 	defer tx.Rollback(ctx)
+
 	_, err = tx.Prepare(ctx, "updateGauge", "INSERT INTO gauge(id, value) VALUES($1, $2)")
 	if err != nil {
 		return err
