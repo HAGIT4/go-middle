@@ -47,6 +47,13 @@ func parseJSONrequest() (h gin.HandlerFunc) {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
+		fmt.Println("Request raw JSON:", reqMetricModel)
+		if reqMetricModel.MType == "gauge" {
+			fmt.Println("JSON Gauge:", *reqMetricModel.Value)
+		}
+		if reqMetricModel.MType == "counter" {
+			fmt.Println("JSON Gauge:", *reqMetricModel.Delta)
+		}
 		c.Set("requestModel", reqMetricModel)
 	}
 	return
