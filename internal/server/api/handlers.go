@@ -103,6 +103,12 @@ func getHandler(sv service.MetricServiceInterface, getResponseFormat int) (h gin
 			return
 		}
 		fmt.Println("Metric from JSON:", respMetricModel)
+		if respMetricModel.MType == "gauge" {
+			fmt.Println("Gauge value:", *respMetricModel.Value)
+		}
+		if respMetricModel.MType == "counter" {
+			fmt.Println("Counter value:", *respMetricModel.Delta)
+		}
 		if err := sv.ComputeHash(respMetricModel); err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
