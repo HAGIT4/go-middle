@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -101,6 +102,7 @@ func getHandler(sv service.MetricServiceInterface, getResponseFormat int) (h gin
 			c.AbortWithError(http.StatusNotFound, err)
 			return
 		}
+		fmt.Println("Metric from JSON:", respMetricModel)
 		if err := sv.ComputeHash(respMetricModel); err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
@@ -111,9 +113,11 @@ func getHandler(sv service.MetricServiceInterface, getResponseFormat int) (h gin
 		} else if getResponseFormat == getResponseFormatPlain {
 			switch respMetricModel.MType {
 			case metricTypeGauge:
+				fmt.Println("Fetched Gauge:", respMetricModel.ID, *respMetricModel.Value)
 				c.String(http.StatusOK, strconv.FormatFloat(*respMetricModel.Value, 'f', -1, 64))
 				return
 			case metricTypeCounter:
+				fmt.Println("Fetched Counter:", respMetricModel.ID, *respMetricModel.Delta)
 				c.String(http.StatusOK, strconv.FormatInt(*respMetricModel.Delta, 10))
 				return
 			default:

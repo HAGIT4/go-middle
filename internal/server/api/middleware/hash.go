@@ -17,6 +17,7 @@ func CheckHashSHA256Middleware(sv service.MetricServiceInterface) (h gin.Handler
 		reqMetric, found := c.Get("requestModel")
 		if !found {
 			c.AbortWithStatus(http.StatusInternalServerError)
+			return
 		}
 		reqMetricModel := reqMetric.(*models.Metrics)
 		if err := sv.CheckHash(reqMetricModel); err != nil {
