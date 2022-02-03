@@ -70,7 +70,11 @@ func (sv *MetricService) UpdateBatch(metricsSlice *[]models.Metrics) (err error)
 			gaugeValue = *metric.Value
 		case "counter":
 			metricType = dbModels.TypeCounter
-			counterDelta = *metric.Delta
+			knownValue, err := sv.getCounter(metricID)
+			if err != nil {
+				knownValue = 0
+			}
+			counterDelta = *metric.Delta + knownValue
 		default:
 			return newServiceMetricTypeUnknownError(metric.MType)
 		}

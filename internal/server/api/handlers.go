@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -46,13 +45,6 @@ func parseJSONrequest() (h gin.HandlerFunc) {
 		if err := c.BindJSON(reqMetricModel); err != nil {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
-		}
-		fmt.Println("Request raw JSON:", reqMetricModel)
-		if reqMetricModel.MType == "gauge" {
-			fmt.Println("JSON Gauge:", *reqMetricModel.Value)
-		}
-		if reqMetricModel.MType == "counter" {
-			fmt.Println("JSON Gauge:", *reqMetricModel.Delta)
 		}
 		c.Set("requestModel", reqMetricModel)
 	}
@@ -109,13 +101,6 @@ func getHandler(sv service.MetricServiceInterface, getResponseFormat int) (h gin
 			c.AbortWithError(http.StatusNotFound, err)
 			return
 		}
-		fmt.Println("Metric from JSON:", respMetricModel)
-		if respMetricModel.MType == "gauge" {
-			fmt.Println("Gauge value:", *respMetricModel.Value)
-		}
-		if respMetricModel.MType == "counter" {
-			fmt.Println("Counter value:", *respMetricModel.Delta)
-		}
 		if err := sv.ComputeHash(respMetricModel); err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
@@ -126,11 +111,9 @@ func getHandler(sv service.MetricServiceInterface, getResponseFormat int) (h gin
 		} else if getResponseFormat == getResponseFormatPlain {
 			switch respMetricModel.MType {
 			case metricTypeGauge:
-				fmt.Println("Fetched Gauge:", respMetricModel.ID, *respMetricModel.Value)
 				c.String(http.StatusOK, strconv.FormatFloat(*respMetricModel.Value, 'f', -1, 64))
 				return
 			case metricTypeCounter:
-				fmt.Println("Fetched Counter:", respMetricModel.ID, *respMetricModel.Delta)
 				c.String(http.StatusOK, strconv.FormatInt(*respMetricModel.Delta, 10))
 				return
 			default:

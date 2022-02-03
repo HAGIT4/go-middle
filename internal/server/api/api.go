@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -29,9 +28,6 @@ type metricServer struct {
 var _ MetricServerInterface = (*metricServer)(nil)
 
 func NewMetricServer(addr string, restoreConfig *models.RestoreConfig, hashKey string, databaseDSN string) (ms *metricServer, err error) {
-
-	fmt.Println("Restore config:", restoreConfig)
-
 	var st storage.StorageInterface
 	if len(databaseDSN) == 0 {
 		st, err = memorystorage.NewMemoryStorage()

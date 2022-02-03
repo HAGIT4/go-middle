@@ -2,7 +2,6 @@ package postgresstorage
 
 import (
 	"context"
-	"fmt"
 )
 
 func (st *PostgresStorage) GetGauge(metricName string) (metricValue float64, err error) {
@@ -23,7 +22,6 @@ func (st *PostgresStorage) GetGauge(metricName string) (metricValue float64, err
 	if err != nil {
 		return 0, err
 	}
-	fmt.Println("Got gauge from db:", metricValue)
 	return metricValue, nil
 }
 
@@ -66,7 +64,6 @@ func (st *PostgresStorage) GetCounter(metricName string) (metricValue int64, err
 			return 0, err
 		}
 	}
-	fmt.Println("Got counter from db:", metricValue)
 	return metricValue, nil
 }
 
