@@ -2,6 +2,7 @@ package postgresstorage
 
 import (
 	"context"
+	"fmt"
 
 	dbModels "github.com/HAGIT4/go-middle/pkg/server/storage/models"
 )
@@ -78,11 +79,13 @@ func (st *PostgresStorage) UpdateBatch(req *dbModels.BatchUpdateRequest) (err er
 	for _, metric := range *metrics {
 		switch metric.MetricType {
 		case dbModels.TypeGauge:
+			fmt.Println("Write gauge in batch:", metric.MetricID, metric.GaugeValue)
 			_, err = tx.Exec(ctx, "updateGauge", metric.MetricID, metric.GaugeValue)
 			if err != nil {
 				return err
 			}
 		case dbModels.TypeCounter:
+			fmt.Println("Write counter in batch:", metric.MetricID, metric.CounterDelta)
 			_, err = tx.Exec(ctx, "updateCounter", metric.MetricID, metric.CounterDelta)
 			if err != nil {
 				return err
