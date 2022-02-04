@@ -59,18 +59,22 @@ func (sv *MetricService) UpdateMetric(metricInfo *models.Metrics) (err error) {
 
 func (sv *MetricService) UpdateBatch(metricsSlice *[]models.Metrics) (err error) {
 	var dbReqSlice []dbModels.UpdateRequest
-	for _, metric := range *metricsSlice {
+	var counterToDelta = make(map[string]int64)
+	for _, metricIt := range *metricsSlice {
+		metric := metricIt
 		metricID := metric.ID
-		var metricType int
+
 		var gaugeValue float64
-		var counterDelta int64
-		var counterToDelta = make(map[string]int64)
 		switch metric.MType {
 		case "gauge":
-			metricType = dbModels.TypeGauge
 			gaugeValue = *metric.Value
+			dbReq := dbModels.UpdateRequest{
+				MetricType: dbModels.TypeGauge,
+				MetricID:   metricID,
+				GaugeValue: gaugeValue,
+			}
+			dbReqSlice = append(dbReqSlice, dbReq)
 		case "counter":
-			metricType = dbModels.TypeCounter
 			knownDelta, found := counterToDelta[metricID]
 			if !found {
 				knownDelta, err = sv.getCounter(metricID)
@@ -78,15 +82,15 @@ func (sv *MetricService) UpdateBatch(metricsSlice *[]models.Metrics) (err error)
 					knownDelta = 0
 				}
 			}
-			counterDelta = *metric.Delta + knownDelta
-			counterToDelta[metricID] = counterDelta
+			counterToDelta[metricID] = *metric.Delta + knownDelta
 		default:
 			return newServiceMetricTypeUnknownError(metric.MType)
 		}
+	}
+	for metricID, counterDelta := range counterToDelta {
 		dbReq := dbModels.UpdateRequest{
-			MetricType:   metricType,
+			MetricType:   dbModels.TypeCounter,
 			MetricID:     metricID,
-			GaugeValue:   gaugeValue,
 			CounterDelta: counterDelta,
 		}
 		dbReqSlice = append(dbReqSlice, dbReq)
