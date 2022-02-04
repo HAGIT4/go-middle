@@ -64,7 +64,7 @@ func (st *PostgresStorage) GetCounter(metricName string) (metricValue int64, err
 			return 0, err
 		}
 	}
-	return metricValue, nil
+	return metricValue, nil // change interface to explicitly return found or not
 }
 
 func (st *PostgresStorage) GetCounterAll() (metricNameToValue map[string]int64, err error) {

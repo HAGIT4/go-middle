@@ -64,17 +64,22 @@ func (sv *MetricService) UpdateBatch(metricsSlice *[]models.Metrics) (err error)
 		var metricType int
 		var gaugeValue float64
 		var counterDelta int64
+		var counterToDelta = make(map[string]int64)
 		switch metric.MType {
 		case "gauge":
 			metricType = dbModels.TypeGauge
 			gaugeValue = *metric.Value
 		case "counter":
 			metricType = dbModels.TypeCounter
-			knownValue, err := sv.getCounter(metricID)
-			if err != nil {
-				knownValue = 0
+			knownDelta, found := counterToDelta[metricID]
+			if !found {
+				knownDelta, err = sv.getCounter(metricID)
+				if err != nil {
+					knownDelta = 0
+				}
 			}
-			counterDelta = *metric.Delta + knownValue
+			counterDelta = *metric.Delta + knownDelta
+			counterToDelta[metricID] = counterDelta
 		default:
 			return newServiceMetricTypeUnknownError(metric.MType)
 		}
