@@ -10,7 +10,8 @@ import (
 	"github.com/HAGIT4/go-middle/internal/server/storage"
 	"github.com/HAGIT4/go-middle/internal/server/storage/memorystorage"
 	"github.com/HAGIT4/go-middle/internal/server/storage/postgresstorage"
-	"github.com/HAGIT4/go-middle/pkg/models"
+	"github.com/HAGIT4/go-middle/pkg/server/api/config"
+	serviceConfig "github.com/HAGIT4/go-middle/pkg/server/service/config"
 )
 
 const (
@@ -19,24 +20,24 @@ const (
 )
 
 type metricServer struct {
-	addr          string
-	handler       *metricRouter
-	sv            service.MetricServiceInterface
-	restoreConfig *models.RestoreConfig
+	addr    string
+	handler *metricRouter
+	sv      service.MetricServiceInterface
+	restore bool
 }
 
 var _ MetricServerInterface = (*metricServer)(nil)
 
-func NewMetricServer(addr string, restoreConfig *models.RestoreConfig, hashKey string, databaseDSN string) (ms *metricServer, err error) {
+func NewMetricServer(cfg *config.ApiConfig) (ms *metricServer, err error) {
 	var st storage.StorageInterface
-	if len(databaseDSN) == 0 {
+	if len(cfg.DatabaseDSN) == 0 {
 		st, err = memorystorage.NewMemoryStorage()
 		if err != nil {
 			return nil, err
 		}
 	} else {
 		postgresCfg := &postgresstorage.PostgresStorageConfig{
-			ConnectionString: databaseDSN,
+			ConnectionString: cfg.DatabaseDSN,
 		}
 		st, err = postgresstorage.NewPostgresStorage(postgresCfg)
 		if err != nil {
@@ -44,10 +45,19 @@ func NewMetricServer(addr string, restoreConfig *models.RestoreConfig, hashKey s
 		}
 	}
 
-	svCfg := &service.MetricServiceConfig{
+	var restore bool
+	var serviceRestoreCfg = &serviceConfig.MetricServiceRestoreConfig{}
+	if cfg.RestoreConfig != nil {
+		serviceRestoreCfg.StoreInterval = cfg.RestoreConfig.StoreInterval
+		serviceRestoreCfg.StoreFile = cfg.RestoreConfig.StoreFile
+		serviceRestoreCfg.Restore = cfg.RestoreConfig.Restore
+		restore = true
+	}
+
+	svCfg := &serviceConfig.MetricServiceConfig{
 		Storage:       st,
-		RestoreConfig: restoreConfig,
-		HashKey:       hashKey,
+		RestoreConfig: serviceRestoreCfg,
+		HashKey:       cfg.HashKey,
 	}
 
 	sv, err := service.NewMetricService(svCfg)
@@ -61,10 +71,10 @@ func NewMetricServer(addr string, restoreConfig *models.RestoreConfig, hashKey s
 	}
 
 	ms = &metricServer{
-		addr:          addr,
-		handler:       httpMux,
-		sv:            sv,
-		restoreConfig: restoreConfig,
+		addr:    cfg.ServerAddr,
+		handler: httpMux,
+		sv:      sv,
+		restore: restore,
 	}
 	return ms, nil
 }
@@ -76,7 +86,7 @@ func (s *metricServer) ListenAndServe() (err error) {
 		}
 	}()
 
-	if s.restoreConfig != nil {
+	if s.restore {
 		go func() {
 			if err := s.sv.SaveDataWithInterval(); err != nil {
 				log.Fatal(err)

@@ -8,6 +8,7 @@ import (
 	"github.com/HAGIT4/go-middle/internal/server/service"
 	"github.com/HAGIT4/go-middle/internal/server/storage/memorystorage"
 	"github.com/HAGIT4/go-middle/pkg/models"
+	"github.com/HAGIT4/go-middle/pkg/server/service/config"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,7 +34,7 @@ func TestServiceUpdateGauge(t *testing.T) {
 			want:  math.MaxFloat64,
 		},
 	}
-	restoreConfig := &models.RestoreConfig{
+	restoreConfig := &config.MetricServiceRestoreConfig{
 		StoreInterval: 300,
 		StoreFile:     "/tmp/devops-metrics-db.json",
 		Restore:       false,
@@ -42,7 +43,7 @@ func TestServiceUpdateGauge(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	svCfg := &service.MetricServiceConfig{
+	svCfg := &config.MetricServiceConfig{
 		RestoreConfig: restoreConfig,
 		Storage:       st,
 	}
@@ -84,7 +85,7 @@ func TestUpdateCounter(t *testing.T) {
 			want:  30,
 		},
 	}
-	restoreConfig := &models.RestoreConfig{
+	restoreConfig := &config.MetricServiceRestoreConfig{
 		StoreInterval: 300,
 		StoreFile:     "/tmp/devops-metrics-db.json",
 		Restore:       false,
@@ -93,7 +94,7 @@ func TestUpdateCounter(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	svCfg := &service.MetricServiceConfig{
+	svCfg := &config.MetricServiceConfig{
 		Storage:       st,
 		RestoreConfig: restoreConfig,
 	}

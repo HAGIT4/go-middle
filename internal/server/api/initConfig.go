@@ -4,25 +4,9 @@ import (
 	"flag"
 	"time"
 
-	"github.com/HAGIT4/go-middle/pkg/models"
+	"github.com/HAGIT4/go-middle/pkg/server/api/config"
 	"github.com/caarlos0/env"
 )
-
-type EnvConfig struct {
-	ServerAddr    string        `env:"ADDRESS"`
-	StoreInterval time.Duration `env:"STORE_INTERVAL"`
-	StoreFile     string        `env:"STORE_FILE"`
-	Restore       bool          `env:"RESTORE"`
-	HashKey       string        `env:"KEY"`
-	DatabaseDSN   string        `env:"DATABASE_DSN"`
-}
-
-type ServerConfig struct {
-	ServerAddr    string
-	RestoreConfig *models.RestoreConfig
-	HashKey       string
-	DatabaseDSN   string
-}
 
 var (
 	addressFlag       *string
@@ -33,7 +17,7 @@ var (
 	databaseDSNflag   *string
 )
 
-func InitConfig() (cfg *ServerConfig, err error) {
+func InitConfig() (cfg *config.ApiConfig, err error) {
 	addressFlag = flag.String("a", "localhost:8080", "Server address:port")
 	restoreFlag = flag.Bool("r", true, "True to restore data from file")
 	storeIntervalFlag = flag.Duration("i", 300*time.Second, "Backup to file interval")
@@ -42,50 +26,43 @@ func InitConfig() (cfg *ServerConfig, err error) {
 	databaseDSNflag = flag.String("d", "", "Database DSN")
 	flag.Parse()
 
-	envCfg := &EnvConfig{}
-	if err := env.Parse(envCfg); err != nil {
+	cfg = &config.ApiConfig{}
+	restoreCfg := &config.ApiRestoreConfig{}
+	cfg.RestoreConfig = restoreCfg
+	if err := env.Parse(restoreCfg); err != nil {
 		return nil, err
 	}
-	cfg = &ServerConfig{}
-
-	if len(envCfg.DatabaseDSN) == 0 {
-		cfg.DatabaseDSN = *databaseDSNflag
-	} else {
-		cfg.DatabaseDSN = envCfg.DatabaseDSN
+	if err := env.Parse(cfg); err != nil {
+		return nil, err
 	}
 
-	if len(envCfg.DatabaseDSN) == 0 {
-		restoreConfig := &models.RestoreConfig{}
+	if len(cfg.DatabaseDSN) == 0 {
+		cfg.DatabaseDSN = *databaseDSNflag
+	}
 
-		if len(envCfg.StoreFile) == 0 {
-			restoreConfig.StoreFile = *storeFileFlag
-		} else {
-			restoreConfig.StoreFile = envCfg.StoreFile
+	if len(cfg.DatabaseDSN) == 0 {
+		if len(restoreCfg.StoreFile) == 0 {
+			restoreCfg.StoreFile = *storeFileFlag
 		}
-		restoreConfig.Restore = envCfg.Restore || *restoreFlag
 
-		if envCfg.StoreInterval == 0 {
-			restoreConfig.StoreInterval = *storeIntervalFlag
-		} else {
-			restoreConfig.StoreInterval = envCfg.StoreInterval
+		restoreCfg.Restore = restoreCfg.Restore || *restoreFlag
+
+		if restoreCfg.StoreInterval == 0 {
+			restoreCfg.StoreInterval = *storeIntervalFlag
 		}
-		cfg.RestoreConfig = restoreConfig
+
+		cfg.RestoreConfig = restoreCfg
 	} else {
 		cfg.RestoreConfig = nil
 	}
 
-	if len(envCfg.ServerAddr) == 0 {
+	if len(cfg.ServerAddr) == 0 {
 		cfg.ServerAddr = *addressFlag
-	} else {
-		cfg.ServerAddr = envCfg.ServerAddr
 	}
 
-	if len(envCfg.HashKey) == 0 {
+	if len(cfg.HashKey) == 0 {
 		cfg.HashKey = *hashKeyFlag
-	} else {
-		cfg.HashKey = envCfg.HashKey
 	}
-
 	return cfg, nil
 
 }
