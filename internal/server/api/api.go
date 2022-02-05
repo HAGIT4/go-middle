@@ -29,7 +29,7 @@ type metricServer struct {
 
 var _ MetricServerInterface = (*metricServer)(nil)
 
-func NewMetricServer(cfg *apiConfig.ApiConfig) (ms *metricServer, err error) {
+func NewMetricServer(cfg *apiConfig.APIConfig) (ms *metricServer, err error) {
 	var st storage.StorageInterface
 	if len(cfg.DatabaseDSN) == 0 {
 		st, err = memorystorage.NewMemoryStorage()

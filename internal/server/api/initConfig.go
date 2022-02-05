@@ -17,7 +17,7 @@ var (
 	databaseDSNflag   *string
 )
 
-func InitConfig() (cfg *config.ApiConfig, err error) {
+func InitConfig() (cfg *config.APIConfig, err error) {
 	addressFlag = flag.String("a", "localhost:8080", "Server address:port")
 	restoreFlag = flag.Bool("r", true, "True to restore data from file")
 	storeIntervalFlag = flag.Duration("i", 300*time.Second, "Backup to file interval")
@@ -26,8 +26,8 @@ func InitConfig() (cfg *config.ApiConfig, err error) {
 	databaseDSNflag = flag.String("d", "", "Database DSN")
 	flag.Parse()
 
-	cfg = &config.ApiConfig{}
-	restoreCfg := &config.ApiRestoreConfig{}
+	cfg = &config.APIConfig{}
+	restoreCfg := &config.APIRestoreConfig{}
 	if err := env.Parse(restoreCfg); err != nil {
 		return nil, err
 	}
