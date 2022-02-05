@@ -28,7 +28,6 @@ func InitConfig() (cfg *config.ApiConfig, err error) {
 
 	cfg = &config.ApiConfig{}
 	restoreCfg := &config.ApiRestoreConfig{}
-	cfg.RestoreConfig = restoreCfg
 	if err := env.Parse(restoreCfg); err != nil {
 		return nil, err
 	}
