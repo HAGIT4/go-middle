@@ -1,7 +1,6 @@
 package agent
 
 import (
-	"context"
 	"net/http"
 	"time"
 )
@@ -12,13 +11,12 @@ type agent struct {
 	reportInterval time.Duration
 	httpClient     *http.Client
 	hashKey        string
-
-	ctx context.Context
+	batch          bool
 }
 
 var _ AgentInterface = (*agent)(nil)
 
-func NewAgent(serverAddr string, pollInterval time.Duration, reportInterval time.Duration, hashKey string) (a *agent) {
+func NewAgent(serverAddr string, pollInterval time.Duration, reportInterval time.Duration, hashKey string, batch bool) (a *agent) {
 	httpClient := &http.Client{}
 	a = &agent{
 		serverAddr:     serverAddr,
@@ -26,6 +24,7 @@ func NewAgent(serverAddr string, pollInterval time.Duration, reportInterval time
 		reportInterval: reportInterval,
 		httpClient:     httpClient,
 		hashKey:        hashKey,
+		batch:          batch,
 	}
 	return a
 }

@@ -78,7 +78,7 @@ func prepareData(st sendType, metricInfo *models.Metrics) (data io.Reader, err e
 }
 
 func (a *agent) hashData(metric *models.Metrics) (err error) {
-	h := hmac.New(sha256.New, []byte(a.hashKey)) // change type
+	h := hmac.New(sha256.New, []byte(a.hashKey))
 	switch metric.MType {
 	case "gauge":
 		h.Write([]byte(fmt.Sprintf("%s:gauge:%f", metric.ID, *metric.Value)))
@@ -89,6 +89,54 @@ func (a *agent) hashData(metric *models.Metrics) (err error) {
 	default:
 		return newUnknownMetricTypeError(metric.MType)
 	}
+	return nil
+}
+
+func (a *agent) SendMetricsBatch(data *agentData, pollCount int64) (err error) {
+	dataSlice := []models.Metrics{}
+	for metric, valueIt := range *data.agentDataGauge {
+		value := valueIt
+		reqMetricInfo := &models.Metrics{
+			ID:    metric,
+			MType: "gauge",
+			Value: &value,
+		}
+		if a.hashKey != "" {
+			if err := a.hashData(reqMetricInfo); err != nil {
+				return err
+			}
+		}
+		dataSlice = append(dataSlice, *reqMetricInfo)
+	}
+	reqMetricInfo := &models.Metrics{
+		ID:    "PollCount",
+		MType: "counter",
+		Delta: &pollCount,
+	}
+	if a.hashKey != "" {
+		if err := a.hashData(reqMetricInfo); err != nil {
+			return err
+		}
+	}
+	dataSlice = append(dataSlice, *reqMetricInfo)
+
+	dataSliceBytes, err := json.Marshal(dataSlice)
+	if err != nil {
+		return err
+	}
+	dataBuffer := bytes.NewBuffer(dataSliceBytes)
+	url := fmt.Sprintf("http://%s/updates/", a.serverAddr)
+	ctx := context.Background()
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, dataBuffer)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := a.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
 	return nil
 }
 
@@ -145,7 +193,7 @@ func (a *agent) SendMetrics(st sendType, data *agentData, pollCount int64) (err 
 		return err
 	}
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, reqData)
 	if err != nil {
 		return err
@@ -161,7 +209,7 @@ func (a *agent) SendMetrics(st sendType, data *agentData, pollCount int64) (err 
 	return nil
 }
 
-func (a *agent) SendMetricsWithInterval(st sendType) (err error) {
+func (a *agent) SendMetricsWithInterval(st sendType, batch bool) (err error) {
 	var pollCount int64
 	var agentData *agentData
 
@@ -179,9 +227,15 @@ func (a *agent) SendMetricsWithInterval(st sendType) (err error) {
 				agentData = a.CollectMetrics()
 				pollCount += 1
 			case <-cSend:
-				err := a.SendMetrics(st, agentData, pollCount)
-				if err != nil {
-					log.Println(err.Error())
+				if a.batch {
+					if err := a.SendMetricsBatch(agentData, pollCount); err != nil {
+						log.Println(err.Error())
+					}
+				} else {
+					err := a.SendMetrics(st, agentData, pollCount)
+					if err != nil {
+						log.Println(err.Error())
+					}
 				}
 				pollCount = 0
 			}

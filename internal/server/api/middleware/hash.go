@@ -41,7 +41,8 @@ func CheckBatchHashSHA256Middleware(sv service.MetricServiceInterface) (h gin.Ha
 			return
 		}
 		reqMetricSlice = reqMetricSliceGet.(*[]models.Metrics)
-		for _, metric := range *reqMetricSlice {
+		for _, metricIt := range *reqMetricSlice {
+			metric := metricIt
 			if len(metric.Hash) == 0 {
 				c.AbortWithStatus(http.StatusBadRequest)
 				return
