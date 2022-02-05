@@ -10,8 +10,9 @@ import (
 	"github.com/HAGIT4/go-middle/internal/server/storage"
 	"github.com/HAGIT4/go-middle/internal/server/storage/memorystorage"
 	"github.com/HAGIT4/go-middle/internal/server/storage/postgresstorage"
-	"github.com/HAGIT4/go-middle/pkg/server/api/config"
+	apiConfig "github.com/HAGIT4/go-middle/pkg/server/api/config"
 	serviceConfig "github.com/HAGIT4/go-middle/pkg/server/service/config"
+	dbConfig "github.com/HAGIT4/go-middle/pkg/server/storage/config"
 )
 
 const (
@@ -28,7 +29,7 @@ type metricServer struct {
 
 var _ MetricServerInterface = (*metricServer)(nil)
 
-func NewMetricServer(cfg *config.ApiConfig) (ms *metricServer, err error) {
+func NewMetricServer(cfg *apiConfig.ApiConfig) (ms *metricServer, err error) {
 	var st storage.StorageInterface
 	if len(cfg.DatabaseDSN) == 0 {
 		st, err = memorystorage.NewMemoryStorage()
@@ -36,7 +37,7 @@ func NewMetricServer(cfg *config.ApiConfig) (ms *metricServer, err error) {
 			return nil, err
 		}
 	} else {
-		postgresCfg := &postgresstorage.PostgresStorageConfig{
+		postgresCfg := &dbConfig.PostgresStorageConfig{
 			ConnectionString: cfg.DatabaseDSN,
 		}
 		st, err = postgresstorage.NewPostgresStorage(postgresCfg)

@@ -3,6 +3,7 @@ package postgresstorage
 import (
 	"context"
 
+	"github.com/HAGIT4/go-middle/pkg/server/storage/config"
 	"github.com/jackc/pgx/v4"
 )
 
@@ -13,9 +14,9 @@ type PostgresStorage struct {
 	connection *pgx.Conn
 }
 
-// var _ PostgresStorageInterface = (*PostgresStorage)(nil)
+var _ PostgresStorageInterface = (*PostgresStorage)(nil)
 
-func NewPostgresStorage(cfg *PostgresStorageConfig) (st *PostgresStorage, err error) {
+func NewPostgresStorage(cfg *config.PostgresStorageConfig) (st *PostgresStorage, err error) {
 	ctx := context.Background()
 	ctxT, cancel := context.WithCancel(ctx)
 	defer cancel()
