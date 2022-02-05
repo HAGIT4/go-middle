@@ -3,6 +3,8 @@ package agent
 import (
 	"net/http"
 	"time"
+
+	"github.com/HAGIT4/go-middle/pkg/agent/config"
 )
 
 type agent struct {
@@ -16,15 +18,15 @@ type agent struct {
 
 var _ AgentInterface = (*agent)(nil)
 
-func NewAgent(serverAddr string, pollInterval time.Duration, reportInterval time.Duration, hashKey string, batch bool) (a *agent) {
+func NewAgent(cfg *config.AgentConfig) (a *agent) {
 	httpClient := &http.Client{}
 	a = &agent{
-		serverAddr:     serverAddr,
-		pollInterval:   pollInterval,
-		reportInterval: reportInterval,
+		serverAddr:     cfg.ServerAddr,
+		pollInterval:   cfg.PollInterval,
+		reportInterval: cfg.ReportInterval,
 		httpClient:     httpClient,
-		hashKey:        hashKey,
-		batch:          batch,
+		hashKey:        cfg.HashKey,
+		batch:          cfg.Batch,
 	}
 	return a
 }

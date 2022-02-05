@@ -20,6 +20,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	a := agent.NewAgent(cfg.ServerAddr, cfg.PollInterval, cfg.ReportInterval, cfg.HashKey, true)
+	a := agent.NewAgent(cfg)
 	a.SendMetricsWithInterval(agent.TypeJSON, true)
 }
