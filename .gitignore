@@ -27,6 +27,3 @@ vendor/
 # backup data
 .tmpstorage.json
 USvideos.csv
-
-#debug
-__debug_bin
