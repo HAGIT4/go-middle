@@ -12,6 +12,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	a := agent.NewAgent(cfg)
+	a, err := agent.NewAgent(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
 	a.SendMetricsWithInterval(agent.TypeJSON, true)
 }

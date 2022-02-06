@@ -238,6 +238,7 @@ func (a *agent) SendMetricsWithInterval(st sendType, batch bool) (err error) {
 					}
 				}
 				pollCount = 0
+				a.logger.Info().Msg("Sending metrics")
 			}
 		}
 	}()

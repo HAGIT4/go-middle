@@ -1,8 +1,6 @@
 package service
 
 import (
-	"fmt"
-
 	"github.com/HAGIT4/go-middle/internal/server/storage"
 	"github.com/HAGIT4/go-middle/pkg/server/service/config"
 )
@@ -30,8 +28,7 @@ func NewMetricService(cfg *config.MetricServiceConfig) (sv *MetricService, err e
 		hashKey:       cfg.HashKey,
 	}
 
-	if sv.restoreConfig != nil { //nevel nil
-		fmt.Println(sv.restoreConfig)
+	if sv.restoreConfig != nil {
 		if err := sv.RestoreDataFromFile(); err != nil {
 			return nil, err
 		}

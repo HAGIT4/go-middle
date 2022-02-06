@@ -27,3 +27,4 @@ vendor/
 # backup data
 .tmpstorage.json
 USvideos.csv
+agent_log.txt
