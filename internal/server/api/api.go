@@ -31,15 +31,14 @@ var _ MetricServerInterface = (*metricServer)(nil)
 
 func NewMetricServer(cfg *apiConfig.APIConfig) (ms *metricServer, err error) {
 	var st storage.StorageInterface
+	var postgresCfg = &dbConfig.PostgresStorageConfig{}
 	if len(cfg.DatabaseDSN) == 0 {
 		st, err = memorystorage.NewMemoryStorage()
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		postgresCfg := &dbConfig.PostgresStorageConfig{
-			ConnectionString: cfg.DatabaseDSN,
-		}
+		postgresCfg.ConnectionString = cfg.DatabaseDSN
 		st, err = postgresstorage.NewPostgresStorage(postgresCfg)
 		if err != nil {
 			return nil, err
@@ -53,6 +52,8 @@ func NewMetricServer(cfg *apiConfig.APIConfig) (ms *metricServer, err error) {
 		serviceRestoreCfg.StoreFile = cfg.RestoreConfig.StoreFile
 		serviceRestoreCfg.Restore = cfg.RestoreConfig.Restore
 		restore = true
+	} else {
+		serviceRestoreCfg = nil
 	}
 
 	svCfg := &serviceConfig.MetricServiceConfig{
