@@ -9,6 +9,7 @@ func (sv *MetricService) updateGauge(metricName string, metricValue float64) (er
 	if err = sv.storage.UpdateGauge(metricName, metricValue); err != nil {
 		return err
 	}
+	sv.logger.Info().Msgf("Gauge %s updated with value %f", metricName, metricValue)
 	return nil
 }
 
@@ -21,6 +22,7 @@ func (sv *MetricService) updateCounter(metricName string, metricValue int64) (er
 	if err = sv.storage.UpdateCounter(metricName, newValue); err != nil {
 		return err
 	}
+	sv.logger.Info().Msgf("Counter %s updated with value %d", metricName, metricValue)
 	return nil
 }
 
