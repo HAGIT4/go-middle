@@ -2,6 +2,8 @@ package postgresstorage
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	dbModels "github.com/HAGIT4/go-middle/pkg/server/storage/models"
 )
@@ -66,27 +68,36 @@ func (st *PostgresStorage) UpdateBatch(req *dbModels.BatchUpdateRequest) (err er
 	}
 	defer tx.Rollback(ctx)
 
-	_, err = tx.Prepare(ctx, "updateGauge", "INSERT INTO gauge(id, value) VALUES($1, $2)")
-	if err != nil {
-		return err
-	}
-	_, err = tx.Prepare(ctx, "updateCounter", "INSERT INTO counter(id, delta) VALUES($1, $2)")
-	if err != nil {
-		return err
-	}
+	gaugeStmtString := "INSERT INTO gauge(id, value) VALUES"
+	counterStmtString := "INSERT INTO counter(id, delta) VALUES"
+	var haveGauge, haveCouter bool
 
 	for _, metric := range *metrics {
 		switch metric.MetricType {
 		case dbModels.TypeGauge:
-			_, err = tx.Exec(ctx, "updateGauge", metric.MetricID, metric.GaugeValue)
-			if err != nil {
-				return err
-			}
+			gaugeStmtString += fmt.Sprintf("('%s', %f), ", metric.MetricID, metric.GaugeValue)
+			haveGauge = true
 		case dbModels.TypeCounter:
-			_, err = tx.Exec(ctx, "updateCounter", metric.MetricID, metric.CounterDelta)
-			if err != nil {
-				return err
-			}
+			counterStmtString += fmt.Sprintf("('%s', %d), ", metric.MetricID, metric.CounterDelta)
+			haveCouter = true
+		default:
+			return newUnknownTypeError()
+		}
+	}
+	gaugeStmtString = strings.TrimSuffix(gaugeStmtString, ", ")
+	counterStmtString = strings.TrimSuffix(counterStmtString, ", ")
+	fmt.Println(gaugeStmtString)
+
+	if haveGauge {
+		_, err = tx.Exec(ctx, gaugeStmtString)
+		if err != nil {
+			return err
+		}
+	}
+	if haveCouter {
+		_, err = tx.Exec(ctx, counterStmtString)
+		if err != nil {
+			return err
 		}
 	}
 	return tx.Commit(ctx)

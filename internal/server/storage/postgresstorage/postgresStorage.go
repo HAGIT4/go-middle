@@ -20,7 +20,13 @@ func NewPostgresStorage(cfg *config.PostgresStorageConfig) (st *PostgresStorage,
 	ctx := context.Background()
 	ctxT, cancel := context.WithCancel(ctx)
 	defer cancel()
-	conn, err := pgx.Connect(ctxT, cfg.ConnectionString)
+
+	connCfg, err := pgx.ParseConfig(cfg.ConnectionString)
+	if err != nil {
+		return nil, err
+	}
+
+	conn, err := pgx.ConnectConfig(ctxT, connCfg)
 	if err != nil {
 		return nil, newUnableToConnectToDatabaseError(cfg.ConnectionString)
 	}
