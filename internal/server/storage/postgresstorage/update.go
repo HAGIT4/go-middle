@@ -3,6 +3,7 @@ package postgresstorage
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	dbModels "github.com/HAGIT4/go-middle/pkg/server/storage/models"
@@ -75,7 +76,8 @@ func (st *PostgresStorage) UpdateBatch(req *dbModels.BatchUpdateRequest) (err er
 	for _, metric := range *metrics {
 		switch metric.MetricType {
 		case dbModels.TypeGauge:
-			gaugeStmtString += fmt.Sprintf("('%s', %f), ", metric.MetricID, metric.GaugeValue)
+			floatValue := strconv.FormatFloat(metric.GaugeValue, 'f', -1, 64)
+			gaugeStmtString += fmt.Sprintf("('%s', %s), ", metric.MetricID, floatValue)
 			haveGauge = true
 		case dbModels.TypeCounter:
 			counterStmtString += fmt.Sprintf("('%s', %d), ", metric.MetricID, metric.CounterDelta)
