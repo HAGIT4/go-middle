@@ -13,8 +13,13 @@ type MetricServiceInterface interface {
 	updateGauge(metricName string, metricValue float64) (err error)
 	updateCounter(metricName string, metricValue int64) (err error)
 	UpdateMetric(metricInfo *models.Metrics) (err error)
+	UpdateBatch(metricsSlice *[]models.Metrics) (err error)
 	// backup.go
 	RestoreDataFromFile() (err error)
 	SaveDataWithInterval() (err error)
 	WriteAllMetricsToFile() (err error)
+	// hash.go
+	CheckHash(metric *models.Metrics) (err error)
+	ComputeHash(metric *models.Metrics) (err error)
+	GetHashKey() string
 }

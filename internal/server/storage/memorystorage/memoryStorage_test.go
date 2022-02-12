@@ -1,15 +1,15 @@
-package storage_test
+package memorystorage_test
 
 import (
 	"log"
 	"math"
 	"testing"
 
-	"github.com/HAGIT4/go-middle/internal/server/storage"
+	"github.com/HAGIT4/go-middle/internal/server/storage/memorystorage"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUpdateGauge(t *testing.T) {
+func TestStorageUpdateGauge(t *testing.T) {
 	tests := []struct {
 		name  string
 		value float64
@@ -31,7 +31,7 @@ func TestUpdateGauge(t *testing.T) {
 			want:  math.MaxFloat64,
 		},
 	}
-	ms, err := storage.NewMemoryStorage()
+	ms, err := memorystorage.NewMemoryStorage()
 	if err != nil {
 		log.Fatal(err)
 	}

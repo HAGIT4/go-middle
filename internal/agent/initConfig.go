@@ -4,28 +4,27 @@ import (
 	"flag"
 	"time"
 
+	"github.com/HAGIT4/go-middle/pkg/agent/config"
 	"github.com/caarlos0/env"
 )
-
-type Config struct {
-	ServerAddr     string        `env:"ADDRESS"`
-	ReportInterval time.Duration `env:"REPORT_INTERVAL"`
-	PollInterval   time.Duration `env:"POLL_INTERVAL"`
-}
 
 var (
 	addressFlag        *string
 	reportIntervalFlag *time.Duration
 	pollIntervalFlag   *time.Duration
+	hashKeyFlag        *string
+	batchFlag          *bool
 )
 
-func InitConfig() (cfg *Config, err error) {
+func InitConfig() (cfg *config.AgentConfig, err error) {
 	addressFlag = flag.String("a", "localhost:8080", "Server address:port")
 	reportIntervalFlag = flag.Duration("r", 10*time.Second, "Metric report interval")
 	pollIntervalFlag = flag.Duration("p", 2*time.Second, "Metric poll interval")
+	hashKeyFlag = flag.String("k", "", "SHA256 key for hashing")
+	batchFlag = flag.Bool("b", false, "True for batch mode")
 	flag.Parse()
 
-	cfg = &Config{}
+	cfg = &config.AgentConfig{}
 	if err := env.Parse(cfg); err != nil {
 		return nil, err
 	}
@@ -40,6 +39,14 @@ func InitConfig() (cfg *Config, err error) {
 
 	if cfg.PollInterval == 0*time.Second {
 		cfg.PollInterval = *pollIntervalFlag
+	}
+
+	if cfg.HashKey == "" {
+		cfg.HashKey = *hashKeyFlag
+	}
+
+	if !cfg.Batch {
+		cfg.Batch = *batchFlag
 	}
 
 	return cfg, nil

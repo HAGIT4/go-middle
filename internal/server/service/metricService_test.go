@@ -6,11 +6,13 @@ import (
 	"testing"
 
 	"github.com/HAGIT4/go-middle/internal/server/service"
+	"github.com/HAGIT4/go-middle/internal/server/storage/memorystorage"
 	"github.com/HAGIT4/go-middle/pkg/models"
+	"github.com/HAGIT4/go-middle/pkg/server/service/config"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUpdateGauge(t *testing.T) {
+func TestServiceUpdateGauge(t *testing.T) {
 	tests := []struct {
 		name  string
 		value float64
@@ -32,12 +34,20 @@ func TestUpdateGauge(t *testing.T) {
 			want:  math.MaxFloat64,
 		},
 	}
-	restoreConfig := &models.RestoreConfig{
+	restoreConfig := &config.MetricServiceRestoreConfig{
 		StoreInterval: 300,
-		StoreFile:     "",
+		StoreFile:     "/tmp/devops-metrics-db.json",
 		Restore:       false,
 	}
-	ms, err := service.NewMetricService(restoreConfig)
+	st, err := memorystorage.NewMemoryStorage()
+	if err != nil {
+		log.Fatal(err)
+	}
+	svCfg := &config.MetricServiceConfig{
+		RestoreConfig: restoreConfig,
+		Storage:       st,
+	}
+	ms, err := service.NewMetricService(svCfg)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -75,12 +85,20 @@ func TestUpdateCounter(t *testing.T) {
 			want:  30,
 		},
 	}
-	restoreConfig := &models.RestoreConfig{
+	restoreConfig := &config.MetricServiceRestoreConfig{
 		StoreInterval: 300,
-		StoreFile:     "",
+		StoreFile:     "/tmp/devops-metrics-db.json",
 		Restore:       false,
 	}
-	ms, _ := service.NewMetricService(restoreConfig)
+	st, err := memorystorage.NewMemoryStorage()
+	if err != nil {
+		log.Fatal(err)
+	}
+	svCfg := &config.MetricServiceConfig{
+		Storage:       st,
+		RestoreConfig: restoreConfig,
+	}
+	ms, _ := service.NewMetricService(svCfg)
 	metricName := "new counter"
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

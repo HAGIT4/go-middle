@@ -46,3 +46,31 @@ func (e *serviceMetricNoDeltaUpdateError) Error() string {
 	err := fmt.Sprintf("No delta provided for counter metric with name: %s", e.metricName)
 	return err
 }
+
+type hashNotMatchingError struct {
+	requestHash string
+	localHash   string
+}
+
+func newHashNotMatchingError(requestHash string, localHash string) *hashNotMatchingError {
+	return &hashNotMatchingError{
+		requestHash: requestHash,
+		localHash:   localHash,
+	}
+}
+
+func (e *hashNotMatchingError) Error() string {
+	err := fmt.Sprintf("Request hash does not match with computed:\nRequest hash: %s\nComputed hash: %s", e.requestHash, e.localHash)
+	return err
+}
+
+type hashComputeError struct{}
+
+func newHashComputeError() (err *hashComputeError) {
+	return &hashComputeError{}
+}
+
+func (e *hashComputeError) Error() (msg string) {
+	msg = "Error when computing hash"
+	return msg
+}

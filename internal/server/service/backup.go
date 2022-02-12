@@ -10,13 +10,9 @@ import (
 	"github.com/HAGIT4/go-middle/pkg/models"
 )
 
-func (s *MetricService) RestoreDataFromFile() (err error) {
-	if !s.restoreConfig.Restore {
-		fmt.Println("Not restoring from backup..")
-		return nil
-	}
+func (sv *MetricService) RestoreDataFromFile() (err error) {
 	openFlags := os.O_RDONLY | os.O_CREATE
-	restoreFile, err := os.OpenFile(s.restoreConfig.StoreFile, openFlags, 0600)
+	restoreFile, err := os.OpenFile(sv.restoreConfig.StoreFile, openFlags, 0600)
 	if err != nil {
 		return err
 	}
@@ -45,7 +41,7 @@ func (s *MetricService) RestoreDataFromFile() (err error) {
 				return newServiceNoValueUpdateError(metricName)
 			}
 			metricValue := *metricInfo.Value
-			if err := s.updateGauge(metricName, metricValue); err != nil {
+			if err := sv.updateGauge(metricName, metricValue); err != nil {
 				return err
 			}
 		case "counter":
@@ -53,7 +49,7 @@ func (s *MetricService) RestoreDataFromFile() (err error) {
 				return newServiceNoDeltaUpdateError(metricName)
 			}
 			metricDelta := *metricInfo.Delta
-			if err := s.updateCounter(metricName, metricDelta); err != nil {
+			if err := sv.updateCounter(metricName, metricDelta); err != nil {
 				return err
 			}
 		default:
@@ -63,30 +59,30 @@ func (s *MetricService) RestoreDataFromFile() (err error) {
 	return nil
 }
 
-func (s *MetricService) SaveDataWithInterval() (err error) {
-	if s.restoreConfig.SyncWrite {
+func (sv *MetricService) SaveDataWithInterval() (err error) {
+	if sv.restoreConfig.SyncWrite {
 		fmt.Println("Sync write mode!")
 		return nil
 	}
-	saveTicker := time.NewTicker(s.restoreConfig.StoreInterval)
+	saveTicker := time.NewTicker(sv.restoreConfig.StoreInterval)
 	saveChan := saveTicker.C
 	for range saveChan {
-		if err = s.WriteAllMetricsToFile(); err != nil {
+		if err = sv.WriteAllMetricsToFile(); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (s *MetricService) WriteAllMetricsToFile() (err error) {
+func (sv *MetricService) WriteAllMetricsToFile() (err error) {
 	openFlags := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
-	backupFile, err := os.OpenFile(s.restoreConfig.StoreFile, openFlags, 0600)
+	backupFile, err := os.OpenFile(sv.restoreConfig.StoreFile, openFlags, 0600)
 	if err != nil {
 		return err
 	}
 
 	writer := bufio.NewWriter(backupFile)
-	allMetrics, err := s.GetMetricModelsAll()
+	allMetrics, err := sv.GetMetricModelsAll()
 	if err != nil {
 		return err
 	}

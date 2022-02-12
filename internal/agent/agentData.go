@@ -5,10 +5,8 @@ import (
 	"runtime"
 )
 
-type agentDataGauge map[string]float64
-
 type agentData struct {
-	agentDataGauge *agentDataGauge
+	agentDataGauge *map[string]float64
 }
 
 func newAgentData() *agentData {
@@ -21,9 +19,9 @@ func newAgentData() *agentData {
 	return data
 }
 
-func newAgentDataGauge(memStats *runtime.MemStats) *agentDataGauge {
+func newAgentDataGauge(memStats *runtime.MemStats) (data *map[string]float64) {
 	randomValue := rand.Float64()
-	data := &agentDataGauge{
+	data = &map[string]float64{
 		"Alloc":         float64(memStats.Alloc),
 		"BuckHashSys":   float64(memStats.BuckHashSys),
 		"Frees":         float64(memStats.Frees),
