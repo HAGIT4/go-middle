@@ -1,25 +1,33 @@
 package agent
 
 import (
+	"context"
+	"fmt"
 	"math/rand"
 	"runtime"
+
+	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/mem"
 )
 
 type agentData struct {
 	agentDataGauge *map[string]float64
 }
 
-func newAgentData() *agentData {
+func newAgentData() (data *agentData, err error) {
 	memStats := &runtime.MemStats{}
 	runtime.ReadMemStats(memStats)
-	dataGauge := newAgentDataGauge(memStats)
-	data := &agentData{
+	dataGauge, err := newAgentDataGauge(memStats)
+	if err != nil {
+		return nil, err
+	}
+	data = &agentData{
 		agentDataGauge: dataGauge,
 	}
-	return data
+	return data, nil
 }
 
-func newAgentDataGauge(memStats *runtime.MemStats) (data *map[string]float64) {
+func newAgentDataGauge(memStats *runtime.MemStats) (data *map[string]float64, err error) {
 	randomValue := rand.Float64()
 	data = &map[string]float64{
 		"Alloc":         float64(memStats.Alloc),
@@ -52,5 +60,22 @@ func newAgentDataGauge(memStats *runtime.MemStats) (data *map[string]float64) {
 
 		"RandomValue": randomValue,
 	}
-	return data
+
+	ctx := context.Background()
+	memStat, err := mem.VirtualMemoryWithContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	(*data)["TotalMemory"] = float64(memStat.Total)
+	(*data)["FreeMemory"] = float64(memStat.Free)
+
+	cpuStat, err := cpu.PercentWithContext(ctx, 0, true)
+	if err != nil {
+		return nil, err
+	}
+	for i, cpu := range cpuStat {
+		metricName := fmt.Sprintf("CPUutilization%d", i+1)
+		(*data)[metricName] = cpu
+	}
+	return data, nil
 }

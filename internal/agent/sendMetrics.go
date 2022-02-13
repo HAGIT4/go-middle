@@ -12,9 +12,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
 	"github.com/HAGIT4/go-middle/pkg/models"
 )
@@ -209,40 +206,29 @@ func (a *agent) SendMetrics(st sendType, data *agentData, pollCount int64) (err 
 	return nil
 }
 
-func (a *agent) SendMetricsWithInterval(st sendType, batch bool) (err error) {
-	var pollCount int64
-	var agentData *agentData
-
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
-
-	tickerPoll := time.NewTicker(a.pollInterval)
-	tickerSend := time.NewTicker(a.reportInterval)
-	cPoll := tickerPoll.C
-	cSend := tickerSend.C
-	go func() {
-		for {
-			select {
-			case <-cPoll:
-				agentData = a.CollectMetrics()
-				pollCount += 1
-			case <-cSend:
-				if a.batch {
-					if err := a.SendMetricsBatch(agentData, pollCount); err != nil {
-						log.Println(err.Error())
-					}
-				} else {
-					err := a.SendMetrics(st, agentData, pollCount)
-					if err != nil {
-						log.Println(err.Error())
-					}
+func (a *agent) SendMetricsWithInterval(st sendType, batch bool, stopCh <-chan os.Signal) (err error) {
+	cSend := a.tickerSend.C
+Loop:
+	for {
+		select {
+		case <-cSend:
+			a.mu.Lock()
+			if a.batch {
+				if err := a.SendMetricsBatch(a.dataBuffer, a.pollCount); err != nil {
+					log.Println(err.Error())
 				}
-				pollCount = 0
-				a.logger.Info().Msg("Sending metrics")
+			} else {
+				err := a.SendMetrics(st, a.dataBuffer, a.pollCount)
+				if err != nil {
+					log.Println(err.Error())
+				}
 			}
+			a.pollCount = 0
+			a.mu.Unlock()
+			a.logger.Info().Msg("Sending metrics")
+		case <-stopCh:
+			break Loop
 		}
-	}()
-	<-quit
-	log.Println("Agent shutdown...")
+	}
 	return nil
 }
