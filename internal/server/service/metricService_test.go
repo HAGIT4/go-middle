@@ -1,7 +1,6 @@
 package service_test
 
 import (
-	"log"
 	"math"
 	"testing"
 
@@ -41,7 +40,7 @@ func TestServiceUpdateGauge(t *testing.T) {
 	}
 	st, err := memorystorage.NewMemoryStorage()
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 	svCfg := &config.MetricServiceConfig{
 		RestoreConfig: restoreConfig,
@@ -49,7 +48,7 @@ func TestServiceUpdateGauge(t *testing.T) {
 	}
 	ms, err := service.NewMetricService(svCfg)
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 
 	metricName := "new metric"
@@ -92,7 +91,7 @@ func TestUpdateCounter(t *testing.T) {
 	}
 	st, err := memorystorage.NewMemoryStorage()
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 	svCfg := &config.MetricServiceConfig{
 		Storage:       st,
@@ -117,5 +116,90 @@ func TestUpdateCounter(t *testing.T) {
 			actualValue := *getResp.Delta
 			assert.Equal(t, tt.want, actualValue)
 		})
+	}
+}
+
+func TestGetMetricAll(t *testing.T) {
+	gaugeValue := float64(30.0)
+	metricGauge := &models.Metrics{
+		ID:    "newGauge",
+		MType: "gauge",
+		Value: &gaugeValue,
+	}
+	counterValue := int64(40)
+	metricCounter := &models.Metrics{
+		ID:    "newCounter",
+		MType: "counter",
+		Delta: &counterValue,
+	}
+
+	restoreConfig := &config.MetricServiceRestoreConfig{
+		StoreInterval: 300,
+		StoreFile:     "/tmp/devops-metrics-db.json",
+		Restore:       false,
+	}
+	st, err := memorystorage.NewMemoryStorage()
+	if err != nil {
+		t.Fatal(err)
+	}
+	svCfg := &config.MetricServiceConfig{
+		Storage:       st,
+		RestoreConfig: restoreConfig,
+	}
+	ms, err := service.NewMetricService(svCfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := ms.UpdateMetric(metricGauge); err != nil {
+		t.Fatal(err)
+	}
+	if err := ms.UpdateMetric(metricCounter); err != nil {
+		t.Fatal(err)
+	}
+
+	var gaugeMap map[string]float64
+	var counterMap map[string]int64
+	if gaugeMap, counterMap, err = ms.GetMetricAll(); err != nil {
+		t.Fatal(err)
+	}
+	if gaugeMap["newGauge"] != gaugeValue {
+		t.Fatal("Gauge value is not as expected")
+	}
+	if counterMap["newCounter"] != counterValue {
+		t.Fatal("Counter value is not as expected")
+	}
+}
+
+func TestCheckHash(t *testing.T) {
+	gaugeValue := float64(40.0)
+	hashKey := "xyzi"
+	gaugeMetric := &models.Metrics{
+		ID:    "newGauge",
+		MType: "gauge",
+		Value: &gaugeValue,
+		Hash:  "5a2fe0c8b3a414875c7ed3a7a119fdda328dc432f5013dc20c5ddf29a3df0531",
+	}
+
+	restoreConfig := &config.MetricServiceRestoreConfig{
+		StoreInterval: 300,
+		StoreFile:     "/tmp/devops-metrics-db.json",
+		Restore:       false,
+	}
+	st, err := memorystorage.NewMemoryStorage()
+	if err != nil {
+		t.Fatal(err)
+	}
+	svCfg := &config.MetricServiceConfig{
+		Storage:       st,
+		RestoreConfig: restoreConfig,
+		HashKey:       hashKey,
+	}
+	ms, err := service.NewMetricService(svCfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := ms.CheckHash(gaugeMetric); err != nil {
+		t.Fatal(err)
 	}
 }

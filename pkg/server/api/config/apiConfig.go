@@ -2,6 +2,7 @@ package config
 
 import "time"
 
+// APIConfig defines server configuration
 type APIConfig struct {
 	RestoreConfig *APIRestoreConfig
 	ServerAddr    string `env:"ADDRESS"`
@@ -9,6 +10,7 @@ type APIConfig struct {
 	DatabaseDSN   string `env:"DATABASE_DSN"`
 }
 
+// APIRestoreConfig defines restoring from backup policy
 type APIRestoreConfig struct {
 	StoreInterval time.Duration `env:"STORE_INTERVAL"`
 	StoreFile     string        `env:"STORE_FILE"`

@@ -1,0 +1,85 @@
+basePath: /
+definitions:
+  models.Metrics:
+    properties:
+      delta:
+        description: значение метрики в случае передачи counter
+        type: integer
+      hash:
+        description: значение хеш-функции
+        type: string
+      id:
+        description: имя метрики
+        type: string
+      type:
+        description: параметр, принимающий значение gauge или counter
+        type: string
+      value:
+        description: значение метрики в случае передачи gauge
+        type: number
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Service for collecting metrics from agents
+  title: MetricService API
+  version: "1.0"
+paths:
+  /:
+    get:
+      description: Get all metric data in HTML format
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Get all metric data
+  /ping:
+    get:
+      responses:
+        "200":
+          description: OK
+      summary: Ping database
+  /update/:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Update a metric
+  /updates/:
+    post:
+      consumes:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Update metrics batch
+  /value/{metricType}/{metricName}:
+    get:
+      consumes:
+      - application/json
+      description: Get metric information by ID
+      parameters:
+      - description: gauge or counter
+        in: path
+        name: metricType
+        required: true
+        type: string
+      - description: name of metric
+        in: path
+        name: metricName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Metrics'
+      summary: Get metric information
+swagger: "2.0"

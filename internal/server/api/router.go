@@ -5,6 +5,10 @@ import (
 	"github.com/HAGIT4/go-middle/internal/server/service"
 	"github.com/HAGIT4/go-middle/internal/server/storage"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
+	_ "github.com/HAGIT4/go-middle/docs"
 )
 
 type metricRouter struct {
@@ -13,6 +17,11 @@ type metricRouter struct {
 	storage storage.StorageInterface
 }
 
+// @title MetricService API
+// @description Service for collecting metrics from agents
+// @version 1.0
+// @BasePath /
+// @host localhost:8080
 func newMetricRouter(sv service.MetricServiceInterface, st storage.StorageInterface) (r *metricRouter, err error) {
 	mux := gin.Default()
 	mux.Use(middleware.GzipReadMiddleware())
@@ -34,6 +43,9 @@ func newMetricRouter(sv service.MetricServiceInterface, st storage.StorageInterf
 
 	// database
 	mux.GET("/ping", databasePingHandler(st))
+
+	//swagger
+	mux.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	r = &metricRouter{
 		mux:     mux,
