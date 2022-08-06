@@ -3,6 +3,9 @@ package main
 import (
 	"log"
 
+	"net/http"
+	_ "net/http/pprof"
+
 	"github.com/HAGIT4/go-middle/internal/server/api"
 )
 
@@ -16,6 +19,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	go http.ListenAndServe(":8081", nil)
 	if err = s.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}

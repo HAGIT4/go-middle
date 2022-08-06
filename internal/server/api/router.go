@@ -1,14 +1,14 @@
 package api
 
 import (
+	_ "github.com/HAGIT4/go-middle/docs"
 	"github.com/HAGIT4/go-middle/internal/server/api/middleware"
 	"github.com/HAGIT4/go-middle/internal/server/service"
 	"github.com/HAGIT4/go-middle/internal/server/storage"
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-
-	_ "github.com/HAGIT4/go-middle/docs"
 )
 
 type metricRouter struct {
@@ -24,8 +24,7 @@ type metricRouter struct {
 // @host localhost:8080
 func newMetricRouter(sv service.MetricServiceInterface, st storage.StorageInterface) (r *metricRouter, err error) {
 	mux := gin.Default()
-	mux.Use(middleware.GzipReadMiddleware())
-	mux.Use(middleware.GzipWriteMiddleware())
+	mux.Use(gzip.Gzip(gzip.DefaultCompression))
 	mux.RedirectTrailingSlash = false
 	mux.LoadHTMLFiles("web/template/allMetrics.html")
 

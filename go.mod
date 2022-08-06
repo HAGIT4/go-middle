@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/caarlos0/env v3.5.0+incompatible
+	github.com/gin-contrib/gzip v0.0.6
 	github.com/gin-gonic/gin v1.8.1
 	github.com/jackc/pgx/v4 v4.14.1
 	github.com/rs/zerolog v1.26.1
