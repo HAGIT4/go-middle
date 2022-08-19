@@ -1,0 +1,129 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Service for collecting metrics from agents",
+        "title": "MetricService API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/": {
+            "get": {
+                "description": "Get all metric data in HTML format",
+                "summary": "Get all metric data",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/ping": {
+            "get": {
+                "summary": "Ping database",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/update/": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Update a metric",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/updates/": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "summary": "Update metrics batch",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/value/{metricType}/{metricName}": {
+            "get": {
+                "description": "Get metric information by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get metric information",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "gauge or counter",
+                        "name": "metricType",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "name of metric",
+                        "name": "metricName",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Metrics"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.Metrics": {
+            "type": "object",
+            "properties": {
+                "delta": {
+                    "description": "значение метрики в случае передачи counter",
+                    "type": "integer"
+                },
+                "hash": {
+                    "description": "значение хеш-функции",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "имя метрики",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "параметр, принимающий значение gauge или counter",
+                    "type": "string"
+                },
+                "value": {
+                    "description": "значение метрики в случае передачи gauge",
+                    "type": "number"
+                }
+            }
+        }
+    }
+}

@@ -2,6 +2,7 @@ package config
 
 import "time"
 
+// AgentConfig defines agent configuration
 type AgentConfig struct {
 	ServerAddr     string        `env:"ADDRESS"`
 	PollInterval   time.Duration `env:"POLL_INTERVAL"`

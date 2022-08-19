@@ -87,6 +87,15 @@ func parsePlainTextRequest(parseMethod int) (h gin.HandlerFunc) {
 	return
 }
 
+// GetHandler godoc
+// @Summary Get metric information
+// @Description Get metric information by ID
+// @Accept json
+// @Produce json
+// @Param metricType path string true "gauge or counter"
+// @Param metricName path string true "name of metric"
+// @Success 200 {object} models.Metrics
+// @Router /value/{metricType}/{metricName} [get]
 func getHandler(sv service.MetricServiceInterface, getResponseFormat int) (h gin.HandlerFunc) {
 	h = func(c *gin.Context) {
 		var reqMetric interface{}
@@ -127,6 +136,11 @@ func getHandler(sv service.MetricServiceInterface, getResponseFormat int) (h gin
 	return
 }
 
+// GetAllDataHTMLhandler godoc
+// @Summary Get all metric data
+// @Description Get all metric data in HTML format
+// @Success 200 {string} HTML
+// @Router / [get]
 func getAllDataHTMLhandler(sv service.MetricServiceInterface) (h gin.HandlerFunc) {
 	return func(c *gin.Context) {
 		c.Header("application-type", "text/plain")
@@ -142,6 +156,12 @@ func getAllDataHTMLhandler(sv service.MetricServiceInterface) (h gin.HandlerFunc
 	}
 }
 
+// UpdateHandler godoc
+// @Summary Update a metric
+// @Accept json
+// @Produce json
+// @Router /update/ [post]
+// @Success 200
 func updateHandler(sv service.MetricServiceInterface) (h gin.HandlerFunc) {
 	h = func(c *gin.Context) {
 		var reqMetricModel interface{}
@@ -158,6 +178,11 @@ func updateHandler(sv service.MetricServiceInterface) (h gin.HandlerFunc) {
 	return
 }
 
+// UpdateBatchHandler godoc
+// @Summary Update metrics batch
+// @Accept json
+// @Router /updates/ [post]
+// @Success 200
 func updateBatchHandler(sv service.MetricServiceInterface) (h gin.HandlerFunc) {
 	h = func(c *gin.Context) {
 		var reqMetricSliceGet interface{}
@@ -176,6 +201,10 @@ func updateBatchHandler(sv service.MetricServiceInterface) (h gin.HandlerFunc) {
 	return
 }
 
+// DatabasePingHandler godoc
+// @Summary Ping database
+// @Router /ping [get]
+// @Success 200
 func databasePingHandler(st storage.StorageInterface) (h gin.HandlerFunc) {
 	h = func(c *gin.Context) {
 		if err := st.Ping(); err != nil {
