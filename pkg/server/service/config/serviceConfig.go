@@ -1,3 +1,4 @@
+// Package config Service configuration structure
 package config
 
 import (

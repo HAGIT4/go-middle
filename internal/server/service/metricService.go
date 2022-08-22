@@ -1,3 +1,4 @@
+// Package service Service for metric collector
 package service
 
 import (

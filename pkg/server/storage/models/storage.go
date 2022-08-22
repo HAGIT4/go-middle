@@ -1,3 +1,4 @@
+// Package models Models for database
 package models
 
 const (

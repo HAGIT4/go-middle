@@ -2,7 +2,7 @@ package main
 
 import (
 	"go/ast"
-	"go/types"
+	"go/token"
 
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/multichecker"
@@ -16,22 +16,52 @@ import (
 )
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	funcexpr := func(x *ast.FuncDecl) {
+	funcexpr := func(x *ast.FuncDecl) (exitCalled bool) {
+		if x.Name.Name != "main" {
+			return false
+		}
 		for _, stmt := range x.Body.List {
-			if expr, ok := stmt.(*ast.CallExpr); ok {
-				if fun, ok := expr.Fun.(*ast.SelectorExpr); ok {
-					if fun.Sel.Name == "os.Exit" {
-						pass.Reportf(fun.Sel.NamePos, "using os.Exit in main")
+			var isExit, isOs bool
+			if expr, ok := stmt.(*ast.ExprStmt); ok {
+				if cExpr, ok := expr.X.(*ast.CallExpr); ok {
+					if fun, ok := cExpr.Fun.(*ast.SelectorExpr); ok {
+						if x, ok := fun.X.(*ast.Ident); ok {
+							if x.Name == "os" {
+								isOs = true
+							}
+						}
+						if fun.Sel.Name == "Exit" {
+							isExit = true
+						}
+						if isOs && isExit {
+							return true
+						}
 					}
 				}
 			}
 		}
+		return false
 	}
+
+	pkgFunc := func(x *ast.Ident) (isMain bool) {
+		if x.Name == "main" {
+			return true
+		}
+		return false
+	}
+
 	for _, file := range pass.Files {
+		var isMain, exitCalled bool
+		var exitPos token.Pos
 		ast.Inspect(file, func(node ast.Node) bool {
 			switch x := node.(type) {
+			case *ast.Ident:
+				isMain = pkgFunc(x)
 			case *ast.FuncDecl:
-				funcexpr(x)
+				exitCalled = funcexpr(x)
+			}
+			if isMain && exitCalled {
+				pass.Reportf(exitPos, "os.Exit called")
 			}
 			return true
 		})
@@ -43,42 +73,6 @@ var MainExitAnalyzer = &analysis.Analyzer{
 	Name: "mainExit",
 	Doc:  "check for os.Exit in main function",
 	Run:  run,
-}
-
-var errorType = types.Universe.Lookup("error").Type().Underlying().(*types.Interface)
-
-func isErrorType(t types.Type) bool {
-	return types.Implements(t, errorType)
-}
-
-func resultErrors(pass *analysis.Pass, call *ast.CallExpr) []bool {
-	switch t := pass.TypesInfo.Types[call].Type.(type) {
-	case *types.Named:
-		return []bool{isErrorType(t)}
-	case *types.Pointer:
-		return []bool{isErrorType(t)}
-	case *types.Tuple:
-		s := make([]bool, t.Len())
-		for i := 0; i < t.Len(); i++ {
-			switch mt := t.At(i).Type().(type) {
-			case *types.Named:
-				s[i] = isErrorType(mt)
-			case *types.Pointer:
-				s[i] = isErrorType(mt)
-			}
-		}
-		return s
-	}
-	return []bool{false}
-}
-
-func isReturnError(pass *analysis.Pass, call *ast.CallExpr) bool {
-	for _, isError := range resultErrors(pass, call) {
-		if isError {
-			return true
-		}
-	}
-	return false
 }
 
 func main() {
@@ -97,6 +91,7 @@ func main() {
 		shadow.Analyzer,
 		structtag.Analyzer,
 		shift.Analyzer,
+		MainExitAnalyzer,
 	}
 	myChecks = append(myChecks, passesChecks...)
 
