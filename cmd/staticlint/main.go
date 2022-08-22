@@ -44,10 +44,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	pkgFunc := func(x *ast.Ident) (isMain bool) {
-		if x.Name == "main" {
-			return true
-		}
-		return false
+		return x.Name == "main"
 	}
 
 	for _, file := range pass.Files {
