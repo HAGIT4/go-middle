@@ -88,14 +88,15 @@ func (sv *MetricService) WriteAllMetricsToFile() (err error) {
 	}
 	for _, metricIt := range allMetrics {
 		metric := metricIt
-		metricBz, err := json.Marshal(metric)
+		var metricBz []byte
+		metricBz, err = json.Marshal(metric)
 		if err != nil {
 			return err
 		}
-		if _, err := writer.Write(metricBz); err != nil {
+		if _, err = writer.Write(metricBz); err != nil {
 			return err
 		}
-		if err := writer.WriteByte('\n'); err != nil {
+		if err = writer.WriteByte('\n'); err != nil {
 			return err
 		}
 	}

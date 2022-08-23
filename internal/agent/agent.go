@@ -1,3 +1,4 @@
+// Package agent Agent metric collector
 package agent
 
 import (

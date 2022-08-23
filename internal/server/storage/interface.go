@@ -1,3 +1,4 @@
+// Package storage Interface for storage for metric collector
 package storage
 
 import (

@@ -1,3 +1,4 @@
+// Package memorystorage Memory implementation of storage
 package memorystorage
 
 import (

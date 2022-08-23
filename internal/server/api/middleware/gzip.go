@@ -1,3 +1,4 @@
+// Package middleware Middlewares for collector service
 package middleware
 
 import (

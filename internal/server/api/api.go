@@ -1,3 +1,4 @@
+// Package api Server for metric collector
 package api
 
 import (

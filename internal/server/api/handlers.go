@@ -114,10 +114,11 @@ func getHandler(sv service.MetricServiceInterface, getResponseFormat int) (h gin
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
-		if getResponseFormat == getResponseFormatJSON {
+		switch getResponseFormat {
+		case getResponseFormatJSON:
 			c.JSON(http.StatusOK, *respMetricModel)
 			return
-		} else if getResponseFormat == getResponseFormatPlain {
+		case getResponseFormatPlain:
 			switch respMetricModel.MType {
 			case metricTypeGauge:
 				c.String(http.StatusOK, strconv.FormatFloat(*respMetricModel.Value, 'f', -1, 64))
@@ -129,7 +130,7 @@ func getHandler(sv service.MetricServiceInterface, getResponseFormat int) (h gin
 				c.AbortWithStatus(http.StatusNotFound)
 				return
 			}
-		} else {
+		default:
 			return
 		}
 	}

@@ -1,3 +1,4 @@
+// Package config Configuration structure for agent
 package config
 
 import "time"

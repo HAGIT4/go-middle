@@ -1,3 +1,4 @@
+// Package postgresstorage postgres implementation of storage
 package postgresstorage
 
 import (

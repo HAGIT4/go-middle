@@ -1,3 +1,4 @@
+// Package config Storage configuration structure
 package config
 
 // PostgresStorageConfig defines a postgres storage configuration

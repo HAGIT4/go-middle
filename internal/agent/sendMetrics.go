@@ -102,7 +102,7 @@ func (a *agent) SendMetricsBatch(data *agentData, pollCount int64) (err error) {
 			Value: &value,
 		}
 		if a.hashKey != "" {
-			if err := a.hashData(reqMetricInfo); err != nil {
+			if err = a.hashData(reqMetricInfo); err != nil {
 				return err
 			}
 		}
@@ -114,7 +114,7 @@ func (a *agent) SendMetricsBatch(data *agentData, pollCount int64) (err error) {
 		Delta: &pollCount,
 	}
 	if a.hashKey != "" {
-		if err := a.hashData(reqMetricInfo); err != nil {
+		if err = a.hashData(reqMetricInfo); err != nil {
 			return err
 		}
 	}
@@ -162,13 +162,15 @@ func (a *agent) SendMetrics(st sendType, data *agentData, pollCount int64) (err 
 			return err
 		}
 		ctx := context.TODO()
-		req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, reqData)
+		var req *http.Request
+		req, err = http.NewRequestWithContext(ctx, http.MethodPost, reqURL, reqData)
 		if err != nil {
 			return err
 		}
 		prepareHeaders(st, req)
 
-		resp, err := a.httpClient.Do(req)
+		var resp *http.Response
+		resp, err = a.httpClient.Do(req)
 		if err != nil {
 			return err
 		}

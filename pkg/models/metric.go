@@ -1,3 +1,4 @@
+// Package models Metric models for agent and server
 package models
 
 // Metrics is a model for a single metric

@@ -151,10 +151,10 @@ func TestGetMetricAll(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := ms.UpdateMetric(metricGauge); err != nil {
+	if err = ms.UpdateMetric(metricGauge); err != nil {
 		t.Fatal(err)
 	}
-	if err := ms.UpdateMetric(metricCounter); err != nil {
+	if err = ms.UpdateMetric(metricCounter); err != nil {
 		t.Fatal(err)
 	}
 
