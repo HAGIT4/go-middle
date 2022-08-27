@@ -14,6 +14,7 @@ var (
 	pollIntervalFlag   *time.Duration
 	hashKeyFlag        *string
 	batchFlag          *bool
+	cryptoKeyFlag      *string
 )
 
 func InitConfig() (cfg *config.AgentConfig, err error) {
@@ -22,6 +23,7 @@ func InitConfig() (cfg *config.AgentConfig, err error) {
 	pollIntervalFlag = flag.Duration("p", 2*time.Second, "Metric poll interval")
 	hashKeyFlag = flag.String("k", "", "SHA256 key for hashing")
 	batchFlag = flag.Bool("b", false, "True for batch mode")
+	cryptoKeyFlag = flag.String("crypto-key", "", "Path to file with public key")
 	flag.Parse()
 
 	cfg = &config.AgentConfig{}
@@ -47,6 +49,10 @@ func InitConfig() (cfg *config.AgentConfig, err error) {
 
 	if !cfg.Batch {
 		cfg.Batch = *batchFlag
+	}
+
+	if len(cfg.CryptoKey) == 0 {
+		cfg.CryptoKey = *cryptoKeyFlag
 	}
 
 	return cfg, nil

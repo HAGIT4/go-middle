@@ -10,4 +10,5 @@ type AgentConfig struct {
 	ReportInterval time.Duration `env:"REPORT_INTERVAL"`
 	HashKey        string        `env:"AGENT_HASH"`
 	Batch          bool          `env:"AGENT_BATCH"`
+	CryptoKey      string        `env:"CRYPTO_KEY"`
 }

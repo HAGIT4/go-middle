@@ -15,6 +15,7 @@ var (
 	storeFileFlag     *string
 	hashKeyFlag       *string
 	databaseDSNflag   *string
+	cryptoKeyFlag     *string
 )
 
 func InitConfig() (cfg *config.APIConfig, err error) {
@@ -24,6 +25,7 @@ func InitConfig() (cfg *config.APIConfig, err error) {
 	storeFileFlag = flag.String("f", "/tmp/devops-metrics-db.json", "File to backup")
 	hashKeyFlag = flag.String("k", "", "Key for hashing")
 	databaseDSNflag = flag.String("d", "", "Database DSN")
+	cryptoKeyFlag = flag.String("crypto-key", "", "Path to file with private key")
 	flag.Parse()
 
 	cfg = &config.APIConfig{}
@@ -61,6 +63,10 @@ func InitConfig() (cfg *config.APIConfig, err error) {
 
 	if len(cfg.HashKey) == 0 {
 		cfg.HashKey = *hashKeyFlag
+	}
+
+	if len(cfg.CryptoKey) == 0 {
+		cfg.CryptoKey = *cryptoKeyFlag
 	}
 	return cfg, nil
 

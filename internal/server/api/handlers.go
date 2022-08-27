@@ -1,6 +1,8 @@
 package api
 
 import (
+	"encoding/json"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -34,15 +36,29 @@ func parseBatchJSONrequest() (h gin.HandlerFunc) {
 	return
 }
 
-func parseJSONrequest() (h gin.HandlerFunc) {
+func parseJSONrequest(sv service.MetricServiceInterface) (h gin.HandlerFunc) {
 	h = func(c *gin.Context) {
 		contentHeader := c.Request.Header.Get("Content-Type")
 		if contentHeader != "application/json" {
 			c.AbortWithError(http.StatusBadRequest, newAPINoJSONHeaderError())
 			return
 		}
+		var body []byte
+		body, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+		if sv.GetPrivateKey() != nil {
+			body, err = sv.DecryptWithPrivateKey(body)
+			if err != nil {
+				c.AbortWithError(http.StatusBadRequest, err)
+				return
+			}
+		}
+
 		reqMetricModel := &models.Metrics{}
-		if err := c.BindJSON(reqMetricModel); err != nil {
+		if err = json.Unmarshal(body, &reqMetricModel); err != nil {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}

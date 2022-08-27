@@ -9,6 +9,7 @@ type APIConfig struct {
 	ServerAddr    string `env:"ADDRESS"`
 	HashKey       string `env:"KEY"`
 	DatabaseDSN   string `env:"DATABASE_DSN"`
+	CryptoKey     string `env:"CRYPTO_KEY"`
 }
 
 // APIRestoreConfig defines restoring from backup policy

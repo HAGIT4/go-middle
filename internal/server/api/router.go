@@ -28,7 +28,7 @@ func newMetricRouter(sv service.MetricServiceInterface, st storage.StorageInterf
 	mux.RedirectTrailingSlash = false
 	mux.LoadHTMLFiles("web/template/allMetrics.html")
 
-	mux.POST("/update/", parseJSONrequest(), middleware.CheckHashSHA256Middleware(sv),
+	mux.POST("/update/", parseJSONrequest(sv), middleware.CheckHashSHA256Middleware(sv),
 		updateHandler(sv))
 	mux.POST("/update/:metricType/:metricName/:metricValue", parsePlainTextRequest(plainTextParseMethodPost),
 		middleware.CheckHashSHA256Middleware(sv), updateHandler(sv))
@@ -36,7 +36,7 @@ func newMetricRouter(sv service.MetricServiceInterface, st storage.StorageInterf
 
 	mux.GET("/value/:metricType/:metricName", parsePlainTextRequest(plainTextParseMethodGet),
 		getHandler(sv, getResponseFormatPlain))
-	mux.POST("/value/", parseJSONrequest(),
+	mux.POST("/value/", parseJSONrequest(sv),
 		getHandler(sv, getResponseFormatJSON))
 	mux.GET("/", getAllDataHTMLhandler(sv))
 
