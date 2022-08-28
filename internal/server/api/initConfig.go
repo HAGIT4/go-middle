@@ -63,7 +63,7 @@ func InitConfig() (cfg *config.APIConfig, err error) {
 
 	var cfgJSON *config.APIConfig
 	if len(envCfg.ConfigFile) != 0 {
-		cfgJSON, err = parseJSON(cfg.ConfigFile)
+		cfgJSON, err = parseJSON(envCfg.ConfigFile)
 		if err != nil {
 			return nil, err
 		}

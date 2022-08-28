@@ -1,7 +1,9 @@
 package agent
 
 import (
+	"encoding/json"
 	"flag"
+	"os"
 	"time"
 
 	"github.com/HAGIT4/go-middle/pkg/agent/config"
@@ -15,7 +17,19 @@ var (
 	hashKeyFlag        *string
 	batchFlag          *bool
 	cryptoKeyFlag      *string
+	configFileFlag     *string
 )
+
+func parseJSON(path string) (cfg *config.AgentConfig, err error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	if err = json.Unmarshal(b, cfg); err != nil {
+		return nil, err
+	}
+	return cfg, nil
+}
 
 func InitConfig() (cfg *config.AgentConfig, err error) {
 	addressFlag = flag.String("a", "localhost:8080", "Server address:port")
@@ -24,34 +38,74 @@ func InitConfig() (cfg *config.AgentConfig, err error) {
 	hashKeyFlag = flag.String("k", "", "SHA256 key for hashing")
 	batchFlag = flag.Bool("b", false, "True for batch mode")
 	cryptoKeyFlag = flag.String("crypto-key", "", "Path to file with public key")
+	configFileFlag = flag.String("c", "", "Path to config JSON")
 	flag.Parse()
 
 	cfg = &config.AgentConfig{}
+	envCfg := &config.AgentConfig{}
 	if err := env.Parse(cfg); err != nil {
 		return nil, err
 	}
+	if len(envCfg.ConfigFile) != 0 {
+		jsonCfg, err := parseJSON(envCfg.ConfigFile)
+		if err != nil {
+			return nil, err
+		}
+		cfg = jsonCfg
+	} else if len(*configFileFlag) != 0 {
+		jsonCfg, err := parseJSON(*configFileFlag)
+		if err != nil {
+			return nil, err
+		}
+		cfg = jsonCfg
+	}
 
-	if len(cfg.ServerAddr) == 0 {
+	switch {
+	case len(envCfg.ServerAddr) != 0:
+		cfg.ServerAddr = envCfg.ServerAddr
+	case len(*addressFlag) != 0:
 		cfg.ServerAddr = *addressFlag
 	}
 
-	if cfg.ReportInterval == 0*time.Second {
+	switch {
+	case envCfg.ReportInterval != 0*time.Second:
+		cfg.ReportInterval = envCfg.ReportInterval
+	case *reportIntervalFlag != 0*time.Second:
 		cfg.ReportInterval = *reportIntervalFlag
 	}
 
-	if cfg.PollInterval == 0*time.Second {
+	switch {
+	case envCfg.PollInterval != 0*time.Second:
+		cfg.PollInterval = envCfg.PollInterval
+	case *pollIntervalFlag != 0*time.Second:
 		cfg.PollInterval = *pollIntervalFlag
 	}
 
-	if cfg.HashKey == "" {
+	switch {
+	case len(envCfg.HashKey) != 0:
+		cfg.HashKey = envCfg.HashKey
+	case len(*hashKeyFlag) != 0:
 		cfg.HashKey = *hashKeyFlag
 	}
 
-	if !cfg.Batch {
+	switch {
+	case len(envCfg.HashKey) != 0:
+		cfg.HashKey = envCfg.HashKey
+	case len(*hashKeyFlag) != 0:
+		cfg.HashKey = *hashKeyFlag
+	}
+
+	switch {
+	case envCfg.Batch:
+		cfg.Batch = envCfg.Batch
+	case *batchFlag:
 		cfg.Batch = *batchFlag
 	}
 
-	if len(cfg.CryptoKey) == 0 {
+	switch {
+	case len(envCfg.CryptoKey) != 0:
+		cfg.CryptoKey = envCfg.CryptoKey
+	case len(*cryptoKeyFlag) != 0:
 		cfg.CryptoKey = *cryptoKeyFlag
 	}
 
