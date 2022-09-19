@@ -1,7 +1,9 @@
 package api
 
 import (
+	"encoding/json"
 	"flag"
+	"os"
 	"time"
 
 	"github.com/HAGIT4/go-middle/pkg/server/api/config"
@@ -15,7 +17,25 @@ var (
 	storeFileFlag     *string
 	hashKeyFlag       *string
 	databaseDSNflag   *string
+	cryptoKeyFlag     *string
+	configFileFlag    *string
 )
+
+func parseJSON(path string) (cfg *config.APIConfig, err error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	if err = json.Unmarshal(b, cfg); err != nil {
+		return nil, err
+	}
+	var cfgRestore *config.APIRestoreConfig
+	if err = json.Unmarshal(b, cfgRestore); err != nil {
+		return nil, err
+	}
+	cfg.RestoreConfig = cfgRestore
+	return cfg, nil
+}
 
 func InitConfig() (cfg *config.APIConfig, err error) {
 	addressFlag = flag.String("a", "localhost:8080", "Server address:port")
@@ -24,44 +44,87 @@ func InitConfig() (cfg *config.APIConfig, err error) {
 	storeFileFlag = flag.String("f", "/tmp/devops-metrics-db.json", "File to backup")
 	hashKeyFlag = flag.String("k", "", "Key for hashing")
 	databaseDSNflag = flag.String("d", "", "Database DSN")
+	cryptoKeyFlag = flag.String("crypto-key", "", "Path to file with private key")
+	configFileFlag = flag.String("c", "", "Path to config JSON")
 	flag.Parse()
 
 	cfg = &config.APIConfig{}
 	restoreCfg := &config.APIRestoreConfig{}
-	if err := env.Parse(restoreCfg); err != nil {
+
+	envCfg := &config.APIConfig{}
+	envRestoreCfg := &config.APIRestoreConfig{}
+
+	if err := env.Parse(envRestoreCfg); err != nil {
 		return nil, err
 	}
-	if err := env.Parse(cfg); err != nil {
+	if err := env.Parse(envCfg); err != nil {
 		return nil, err
 	}
 
-	if len(cfg.DatabaseDSN) == 0 {
+	var cfgJSON *config.APIConfig
+	if len(envCfg.ConfigFile) != 0 {
+		cfgJSON, err = parseJSON(envCfg.ConfigFile)
+		if err != nil {
+			return nil, err
+		}
+		cfg = cfgJSON
+	} else if len(*configFileFlag) != 0 {
+		cfgJSON, err = parseJSON(*configFileFlag)
+		if err != nil {
+			return nil, err
+		}
+		cfg = cfgJSON
+	}
+
+	switch {
+	case len(envCfg.DatabaseDSN) != 0:
+		cfg.DatabaseDSN = envCfg.DatabaseDSN
+	case len(*databaseDSNflag) != 0:
 		cfg.DatabaseDSN = *databaseDSNflag
 	}
 
 	if len(cfg.DatabaseDSN) == 0 {
-		if len(restoreCfg.StoreFile) == 0 {
+		switch {
+		case len(envRestoreCfg.StoreFile) != 0:
+			restoreCfg.StoreFile = envRestoreCfg.StoreFile
+		case len(*storeFileFlag) != 0:
 			restoreCfg.StoreFile = *storeFileFlag
 		}
 
-		restoreCfg.Restore = restoreCfg.Restore || *restoreFlag
+		restoreCfg.Restore = envRestoreCfg.Restore || *restoreFlag
 
-		if restoreCfg.StoreInterval == 0 {
+		switch {
+		case envRestoreCfg.StoreInterval != 0:
+			restoreCfg.StoreInterval = envRestoreCfg.StoreInterval
+		case *storeIntervalFlag != 0:
 			restoreCfg.StoreInterval = *storeIntervalFlag
 		}
-
 		cfg.RestoreConfig = restoreCfg
 	} else {
 		cfg.RestoreConfig = nil
 	}
 
-	if len(cfg.ServerAddr) == 0 {
+	switch {
+	case len(envCfg.ServerAddr) != 0:
+		cfg.ServerAddr = envCfg.ServerAddr
+	case len(*addressFlag) != 0:
 		cfg.ServerAddr = *addressFlag
 	}
 
-	if len(cfg.HashKey) == 0 {
+	switch {
+	case len(envCfg.HashKey) != 0:
+		cfg.HashKey = envCfg.HashKey
+	case len(*hashKeyFlag) != 0:
 		cfg.HashKey = *hashKeyFlag
 	}
+
+	switch {
+	case len(envCfg.CryptoKey) != 0:
+		cfg.CryptoKey = envCfg.CryptoKey
+	case len(*cryptoKeyFlag) != 0:
+		cfg.CryptoKey = *cryptoKeyFlag
+	}
+
 	return cfg, nil
 
 }

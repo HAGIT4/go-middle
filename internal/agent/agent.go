@@ -2,6 +2,7 @@
 package agent
 
 import (
+	"crypto/rsa"
 	"net/http"
 	"time"
 
@@ -17,6 +18,7 @@ type agent struct {
 	hashKey        string
 	batch          bool
 	logger         *zerolog.Logger
+	publicKey      *rsa.PublicKey
 }
 
 var _ AgentInterface = (*agent)(nil)
@@ -27,6 +29,12 @@ func NewAgent(cfg *config.AgentConfig) (a *agent, err error) {
 	if err != nil {
 		return nil, err
 	}
+
+	pub, err := a.GetPublicKeyFromPem(cfg.CryptoKey)
+	if err != nil {
+		return nil, err
+	}
+
 	a = &agent{
 		serverAddr:     cfg.ServerAddr,
 		pollInterval:   cfg.PollInterval,
@@ -35,6 +43,7 @@ func NewAgent(cfg *config.AgentConfig) (a *agent, err error) {
 		hashKey:        cfg.HashKey,
 		batch:          cfg.Batch,
 		logger:         logger,
+		publicKey:      pub,
 	}
 	return a, nil
 }

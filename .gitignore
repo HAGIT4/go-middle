@@ -29,3 +29,5 @@ vendor/
 USvideos.csv
 agent_log.txt
 service_log.txt
+key.rsa
+key.rsa.pub

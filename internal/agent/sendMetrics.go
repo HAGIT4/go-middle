@@ -61,7 +61,7 @@ func prepareURL(st sendType, serverAddress string, metricInfo *models.Metrics) (
 	return url, nil
 }
 
-func prepareData(st sendType, metricInfo *models.Metrics) (data io.Reader, err error) {
+func (a *agent) prepareData(st sendType, metricInfo *models.Metrics) (data io.Reader, err error) {
 	switch st {
 	case TypePlain:
 		return nil, nil
@@ -70,6 +70,14 @@ func prepareData(st sendType, metricInfo *models.Metrics) (data io.Reader, err e
 		if err != nil {
 			return nil, err
 		}
+
+		if a.publicKey != nil {
+			metricInfoBytes, err = a.EncryptWithPublicKey(metricInfoBytes)
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		dataBuffer := bytes.NewBuffer(metricInfoBytes)
 		return dataBuffer, nil
 	default:
@@ -124,6 +132,14 @@ func (a *agent) SendMetricsBatch(data *agentData, pollCount int64) (err error) {
 	if err != nil {
 		return err
 	}
+
+	if a.publicKey != nil {
+		dataSliceBytes, err = a.EncryptWithPublicKey(dataSliceBytes)
+		if err != nil {
+			return err
+		}
+	}
+
 	dataBuffer := bytes.NewBuffer(dataSliceBytes)
 	url := fmt.Sprintf("http://%s/updates/", a.serverAddr)
 	ctx := context.Background()
@@ -157,7 +173,7 @@ func (a *agent) SendMetrics(st sendType, data *agentData, pollCount int64) (err 
 		if err != nil {
 			return err
 		}
-		reqData, err = prepareData(st, reqMetricInfo)
+		reqData, err = a.prepareData(st, reqMetricInfo)
 		if err != nil {
 			return err
 		}
@@ -190,7 +206,7 @@ func (a *agent) SendMetrics(st sendType, data *agentData, pollCount int64) (err 
 	if err != nil {
 		return err
 	}
-	reqData, err = prepareData(st, reqMetricInfo)
+	reqData, err = a.prepareData(st, reqMetricInfo)
 	if err != nil {
 		return err
 	}

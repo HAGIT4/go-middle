@@ -1,6 +1,10 @@
 package service
 
-import "github.com/HAGIT4/go-middle/pkg/models"
+import (
+	"crypto/rsa"
+
+	"github.com/HAGIT4/go-middle/pkg/models"
+)
 
 type MetricServiceInterface interface {
 	// get.go
@@ -22,4 +26,7 @@ type MetricServiceInterface interface {
 	CheckHash(metric *models.Metrics) (err error)
 	ComputeHash(metric *models.Metrics) (err error)
 	GetHashKey() string
+	// crypto.go
+	GetPrivateKey() *rsa.PrivateKey
+	DecryptWithPrivateKey([]byte) ([]byte, error)
 }

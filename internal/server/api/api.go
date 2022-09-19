@@ -2,6 +2,7 @@
 package api
 
 import (
+	"crypto/rsa"
 	"log"
 	"os"
 	"os/signal"
@@ -57,10 +58,19 @@ func NewMetricServer(cfg *apiConfig.APIConfig) (ms *metricServer, err error) {
 		serviceRestoreCfg = nil
 	}
 
+	var prv *rsa.PrivateKey
+	if cfg.CryptoKey != "" {
+		prv, err = service.GetPrivateKeyFromPem(cfg.CryptoKey)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	svCfg := &serviceConfig.MetricServiceConfig{
-		Storage:       st,
-		RestoreConfig: serviceRestoreCfg,
-		HashKey:       cfg.HashKey,
+		Storage:          st,
+		RestoreConfig:    serviceRestoreCfg,
+		HashKey:          cfg.HashKey,
+		CryptoPrivateKey: prv,
 	}
 
 	sv, err := service.NewMetricService(svCfg)
