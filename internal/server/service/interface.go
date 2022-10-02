@@ -2,6 +2,7 @@ package service
 
 import (
 	"crypto/rsa"
+	"net"
 
 	"github.com/HAGIT4/go-middle/pkg/models"
 )
@@ -29,4 +30,6 @@ type MetricServiceInterface interface {
 	// crypto.go
 	GetPrivateKey() *rsa.PrivateKey
 	DecryptWithPrivateKey([]byte) ([]byte, error)
+	// net.go
+	GetTrustedSubnet() *net.IPNet
 }

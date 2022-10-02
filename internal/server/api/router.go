@@ -25,6 +25,7 @@ type metricRouter struct {
 func newMetricRouter(sv service.MetricServiceInterface, st storage.StorageInterface) (r *metricRouter, err error) {
 	mux := gin.Default()
 	mux.Use(gzip.Gzip(gzip.DefaultCompression))
+	mux.Use(middleware.CheckTrustedSubnetMiddleWare(sv))
 	mux.RedirectTrailingSlash = false
 	mux.LoadHTMLFiles("web/template/allMetrics.html")
 

@@ -3,7 +3,9 @@ package api
 
 import (
 	"crypto/rsa"
+	"fmt"
 	"log"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
@@ -12,9 +14,11 @@ import (
 	"github.com/HAGIT4/go-middle/internal/server/storage"
 	"github.com/HAGIT4/go-middle/internal/server/storage/memorystorage"
 	"github.com/HAGIT4/go-middle/internal/server/storage/postgresstorage"
+	"github.com/HAGIT4/go-middle/pb"
 	apiConfig "github.com/HAGIT4/go-middle/pkg/server/api/config"
 	serviceConfig "github.com/HAGIT4/go-middle/pkg/server/service/config"
 	dbConfig "github.com/HAGIT4/go-middle/pkg/server/storage/config"
+	"google.golang.org/grpc"
 )
 
 const (
@@ -23,10 +27,12 @@ const (
 )
 
 type metricServer struct {
-	addr    string
-	handler *metricRouter
-	sv      service.MetricServiceInterface
-	restore bool
+	addr        string
+	grpcPort    int
+	handler     *metricRouter
+	grpcHandler *metricGrpcHandler
+	sv          service.MetricServiceInterface
+	restore     bool
 }
 
 var _ MetricServerInterface = (*metricServer)(nil)
@@ -66,11 +72,20 @@ func NewMetricServer(cfg *apiConfig.APIConfig) (ms *metricServer, err error) {
 		}
 	}
 
+	var trustedSubnet *net.IPNet
+	if cfg.TrustedSubnet != "" {
+		_, trustedSubnet, err = net.ParseCIDR(cfg.TrustedSubnet)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	svCfg := &serviceConfig.MetricServiceConfig{
 		Storage:          st,
 		RestoreConfig:    serviceRestoreCfg,
 		HashKey:          cfg.HashKey,
 		CryptoPrivateKey: prv,
+		TrustedSubnet:    trustedSubnet,
 	}
 
 	sv, err := service.NewMetricService(svCfg)
@@ -83,11 +98,18 @@ func NewMetricServer(cfg *apiConfig.APIConfig) (ms *metricServer, err error) {
 		return nil, err
 	}
 
+	grpcMux, err := newGrpcMetricRouter(sv, st)
+	if err != nil {
+		return nil, err
+	}
+
 	ms = &metricServer{
-		addr:    cfg.ServerAddr,
-		handler: httpMux,
-		sv:      sv,
-		restore: restore,
+		addr:        cfg.ServerAddr,
+		grpcPort:    cfg.GrpcPort,
+		handler:     httpMux,
+		grpcHandler: grpcMux,
+		sv:          sv,
+		restore:     restore,
 	}
 	return ms, nil
 }
@@ -97,6 +119,19 @@ func (s *metricServer) ListenAndServe() (err error) {
 		if err := s.handler.mux.Run(s.addr); err != nil {
 			log.Fatal(err)
 		}
+	}()
+	go func() {
+		grpcAddr := fmt.Sprintf(":%d", s.grpcPort)
+		listen, err := net.Listen("tcp", grpcAddr)
+		if err != nil {
+			log.Fatal(err)
+		}
+		grpcServer := grpc.NewServer()
+		pb.RegisterMetricServiceServer(grpcServer, s.grpcHandler)
+		if err := grpcServer.Serve(listen); err != nil {
+			log.Fatal(err)
+		}
+
 	}()
 
 	if s.restore {

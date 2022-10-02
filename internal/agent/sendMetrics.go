@@ -16,6 +16,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/HAGIT4/go-middle/pb"
 	"github.com/HAGIT4/go-middle/pkg/models"
 )
 
@@ -147,12 +148,58 @@ func (a *agent) SendMetricsBatch(data *agentData, pollCount int64) (err error) {
 	if err != nil {
 		return err
 	}
+	req.Header.Set("X-Real-IP", a.localIPstring)
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := a.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
+	return nil
+}
+
+func (a *agent) SendMetricsGrpc(data *agentData, pollCount int64) (err error) {
+	for metric, value := range *data.agentDataGauge {
+		reqMetricInfo := &models.Metrics{
+			ID:    metric,
+			MType: "gauge",
+			Value: &value,
+		}
+		if a.hashKey != "" {
+			a.hashData(reqMetricInfo)
+		}
+
+		grpcReq := &pb.UpdateReq{
+			ID:    reqMetricInfo.ID,
+			Type:  reqMetricInfo.MType,
+			Value: *reqMetricInfo.Value,
+			Hash:  reqMetricInfo.Hash,
+		}
+		ctx := context.Background()
+		_, err := a.grpcClient.Update(ctx, grpcReq)
+		if err != nil {
+			return err
+		}
+	}
+	reqMetricInfo := &models.Metrics{
+		ID:    "PollCount",
+		MType: "counter",
+		Delta: &pollCount,
+	}
+	if a.hashKey != "" {
+		a.hashData(reqMetricInfo)
+	}
+	grpcReq := &pb.UpdateReq{
+		ID:    reqMetricInfo.ID,
+		Type:  reqMetricInfo.MType,
+		Delta: *reqMetricInfo.Delta,
+		Hash:  reqMetricInfo.Hash,
+	}
+	ctx := context.Background()
+	_, err = a.grpcClient.Update(ctx, grpcReq)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -217,6 +264,7 @@ func (a *agent) SendMetrics(st sendType, data *agentData, pollCount int64) (err 
 		return err
 	}
 	prepareHeaders(st, req)
+	req.Header.Set("X-Real-IP", a.localIPstring)
 
 	resp, err := a.httpClient.Do(req)
 	if err != nil {
@@ -245,16 +293,23 @@ func (a *agent) SendMetricsWithInterval(st sendType, batch bool) (err error) {
 				agentData = a.CollectMetrics()
 				pollCount += 1
 			case <-cSend:
-				if a.batch {
-					if err := a.SendMetricsBatch(agentData, pollCount); err != nil {
+				if a.grpcPort != 0 {
+					if err := a.SendMetricsGrpc(agentData, pollCount); err != nil {
 						log.Println(err.Error())
 					}
 				} else {
-					err := a.SendMetrics(st, agentData, pollCount)
-					if err != nil {
-						log.Println(err.Error())
+					if a.batch {
+						if err := a.SendMetricsBatch(agentData, pollCount); err != nil {
+							log.Println(err.Error())
+						}
+					} else {
+						err := a.SendMetrics(st, agentData, pollCount)
+						if err != nil {
+							log.Println(err.Error())
+						}
 					}
 				}
+
 				pollCount = 0
 				a.logger.Info().Msg("Sending metrics")
 			}

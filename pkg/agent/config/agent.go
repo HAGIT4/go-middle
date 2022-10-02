@@ -12,4 +12,5 @@ type AgentConfig struct {
 	Batch          bool          `env:"AGENT_BATCH" json:"batch"`
 	CryptoKey      string        `env:"CRYPTO_KEY" json:"crypto_key"`
 	ConfigFile     string        `env:"CONFIG"`
+	GrpcPort       int           `env:"GRPC_PORT" json:"grcp_port"`
 }
