@@ -35,7 +35,6 @@ func parseJSON(path string) (cfg *config.APIConfig, err error) {
 	if err = json.Unmarshal(b, cfgRestore); err != nil {
 		return nil, err
 	}
-	cfg.RestoreConfig = cfgRestore
 	return cfg, nil
 }
 
