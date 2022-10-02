@@ -3,6 +3,7 @@ package service
 
 import (
 	"crypto/rsa"
+	"net"
 
 	"github.com/HAGIT4/go-middle/internal/server/storage"
 	"github.com/HAGIT4/go-middle/pkg/server/service/config"
@@ -15,6 +16,7 @@ type MetricService struct {
 	hashKey       string
 	logger        *zerolog.Logger
 	privateKey    *rsa.PrivateKey
+	trustedSubnet *net.IPNet
 }
 
 var _ MetricServiceInterface = (*MetricService)(nil)
@@ -39,6 +41,7 @@ func NewMetricService(cfg *config.MetricServiceConfig) (sv *MetricService, err e
 		hashKey:       cfg.HashKey,
 		logger:        logger,
 		privateKey:    cfg.CryptoPrivateKey,
+		trustedSubnet: cfg.TrustedSubnet,
 	}
 
 	if sv.restoreConfig != nil {

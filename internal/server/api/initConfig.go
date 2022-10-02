@@ -11,14 +11,16 @@ import (
 )
 
 var (
-	addressFlag       *string
-	restoreFlag       *bool
-	storeIntervalFlag *time.Duration
-	storeFileFlag     *string
-	hashKeyFlag       *string
-	databaseDSNflag   *string
-	cryptoKeyFlag     *string
-	configFileFlag    *string
+	addressFlag        *string
+	restoreFlag        *bool
+	storeIntervalFlag  *time.Duration
+	storeFileFlag      *string
+	hashKeyFlag        *string
+	databaseDSNflag    *string
+	cryptoKeyFlag      *string
+	configFileFlag     *string
+	trustedNetworkFlag *string
+	grpcPortFlag       *int
 )
 
 func parseJSON(path string) (cfg *config.APIConfig, err error) {
@@ -33,7 +35,6 @@ func parseJSON(path string) (cfg *config.APIConfig, err error) {
 	if err = json.Unmarshal(b, cfgRestore); err != nil {
 		return nil, err
 	}
-	cfg.RestoreConfig = cfgRestore
 	return cfg, nil
 }
 
@@ -46,6 +47,8 @@ func InitConfig() (cfg *config.APIConfig, err error) {
 	databaseDSNflag = flag.String("d", "", "Database DSN")
 	cryptoKeyFlag = flag.String("crypto-key", "", "Path to file with private key")
 	configFileFlag = flag.String("c", "", "Path to config JSON")
+	trustedNetworkFlag = flag.String("t", "", "Trusted network")
+	grpcPortFlag = flag.Int("g", 0, "Grpc port")
 	flag.Parse()
 
 	cfg = &config.APIConfig{}
@@ -123,6 +126,20 @@ func InitConfig() (cfg *config.APIConfig, err error) {
 		cfg.CryptoKey = envCfg.CryptoKey
 	case len(*cryptoKeyFlag) != 0:
 		cfg.CryptoKey = *cryptoKeyFlag
+	}
+
+	switch {
+	case len(envCfg.TrustedSubnet) != 0:
+		cfg.TrustedSubnet = envCfg.TrustedSubnet
+	case len(*trustedNetworkFlag) != 0:
+		cfg.TrustedSubnet = *trustedNetworkFlag
+	}
+
+	switch {
+	case envCfg.GrpcPort != 0:
+		cfg.GrpcPort = envCfg.GrpcPort
+	case *grpcPortFlag != 0:
+		cfg.GrpcPort = *grpcPortFlag
 	}
 
 	return cfg, nil

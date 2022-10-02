@@ -11,6 +11,8 @@ type APIConfig struct {
 	DatabaseDSN   string `env:"DATABASE_DSN" json:"database_dsn"`
 	CryptoKey     string `env:"CRYPTO_KEY" json:"crypto_key"`
 	ConfigFile    string `env:"CONFIG"`
+	TrustedSubnet string `env:"TRUSTED_SUBNET" json:"trusted_subnet"`
+	GrpcPort      int    `env:"GRPC_PORT" json:"grpc_port"`
 }
 
 // APIRestoreConfig defines restoring from backup policy

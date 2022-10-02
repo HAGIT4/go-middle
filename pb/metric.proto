@@ -1,0 +1,17 @@
+syntax = "proto3";
+package metric;
+option go_package = "github.com/HAGIT4/go-middle/pb";
+
+message UpdateReq {
+    string ID = 1;
+    string type = 2;
+    int64 delta = 3;
+    double value = 4;
+    string hash = 5;
+}
+
+message UpdateResp {}
+
+service MetricService {
+    rpc Update(UpdateReq) returns (UpdateResp);
+}

@@ -18,6 +18,7 @@ var (
 	batchFlag          *bool
 	cryptoKeyFlag      *string
 	configFileFlag     *string
+	grpcPortFlag       *int
 )
 
 func parseJSON(path string) (cfg *config.AgentConfig, err error) {
@@ -39,6 +40,7 @@ func InitConfig() (cfg *config.AgentConfig, err error) {
 	batchFlag = flag.Bool("b", false, "True for batch mode")
 	cryptoKeyFlag = flag.String("crypto-key", "", "Path to file with public key")
 	configFileFlag = flag.String("c", "", "Path to config JSON")
+	grpcPortFlag = flag.Int("g", 0, "Grpc port")
 	flag.Parse()
 
 	cfg = &config.AgentConfig{}
@@ -107,6 +109,13 @@ func InitConfig() (cfg *config.AgentConfig, err error) {
 		cfg.CryptoKey = envCfg.CryptoKey
 	case len(*cryptoKeyFlag) != 0:
 		cfg.CryptoKey = *cryptoKeyFlag
+	}
+
+	switch {
+	case envCfg.GrpcPort != 0:
+		cfg.GrpcPort = envCfg.GrpcPort
+	case *grpcPortFlag != 0:
+		cfg.GrpcPort = *grpcPortFlag
 	}
 
 	return cfg, nil

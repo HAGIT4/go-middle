@@ -3,6 +3,7 @@ package config
 
 import (
 	"crypto/rsa"
+	"net"
 	"time"
 
 	"github.com/HAGIT4/go-middle/internal/server/storage"
@@ -14,6 +15,7 @@ type MetricServiceConfig struct {
 	RestoreConfig    *MetricServiceRestoreConfig
 	HashKey          string
 	CryptoPrivateKey *rsa.PrivateKey
+	TrustedSubnet    *net.IPNet
 }
 
 // MetricServiceRestoreConfig defines a metric service restore from backup policy
